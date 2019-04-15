@@ -1,0 +1,5 @@
+
+1 Open Synapse
+2 Open MATLAB
+3 Make sure the MATLAB folder is C:\SynUI
+4 Run synUI in MATLAB
