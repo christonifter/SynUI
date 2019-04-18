@@ -15,6 +15,11 @@ function out = psthlfpplots(app, data, nchans, nclusts)
         targetlevel = str2double(app.LevelDrop.Value);
     end
     [spetfreq, spetlevel, stimspets, trials] = freqlevelspet(data.spets, data.stimons, data.frqs, data.lvls);
+    lfp(1).x = [];
+    lfp(2).x = [];
+    lfp(1).y = [];
+    lfp(2).y = [];
+    
     if numel(unique(data.lvls))> 1 && numel(unique(data.frqs))> 1 
 %FRA
         if app.PSTHPopupCheck.Value
