@@ -15,6 +15,11 @@ function out = psthlfpplots(app, data, nchans, nclusts)
         targetlevel = str2double(app.LevelDrop.Value);
     end
     [spetfreq, spetlevel, stimspets, trials] = freqlevelspet(data.spets, data.stimons, data.frqs, data.lvls);
+    lfp(1).x = [];
+    lfp(2).x = [];
+    lfp(1).y = [];
+    lfp(2).y = [];
+    
     if numel(unique(data.lvls))> 1 && numel(unique(data.frqs))> 1 
 %FRA
         if app.PSTHPopupCheck.Value
@@ -67,10 +72,20 @@ function out = psthlfpplots(app, data, nchans, nclusts)
             else; axesfield = ['LFP' num2str(i) 'Axes']; lax(i) = app.(axesfield); end
             cla(lax(i), 'reset');
             reffield = ['PSTH' num2str(i) 'RefDrop']; startfield = ['PSTH' num2str(i) 'StartEdit']; endfield = ['PSTH' num2str(i) 'EndEdit'];
-            if strcmpi(app.(reffield).Value, 'onset'); analwin = [app.(startfield).Value, app.(endfield).Value] + data.stimons(1);
-            else; analwin = [app.(startfield).Value, app.(endfield).Value] + data.stimoffs(1); end
-            lfp(i).x = (app.(startfield).Value:(1/data.fs):app.(endfield).Value)';
-            yi1 = round(analwin(1).*data.fs); yi2 = yi1 + numel(lfp(i).x) - 1;
+            if strcmpi(app.(reffield).Value, 'onset')
+                analwin = [app.(startfield).Value, app.(endfield).Value] + data.stimons(1);
+                %datawin tracks where the recording starts and ends,
+                %relative to the reference. We can't reference sample points
+                %outside of this window in data.LFP.
+                datawin = [1 size(data.LFP, 1)]./data.fs - data.stimons(1);
+            else
+                analwin = [app.(startfield).Value, app.(endfield).Value] + data.stimoffs(1); 
+                datawin = [1 size(data.LFP, 1)]./data.fs - data.stimoffs(1);
+            end
+            xstart = max([datawin(1); app.(startfield).Value]);
+            xend = min([datawin(2); app.(endfield).Value]);
+            lfp(i).x = (xstart:(1/data.fs):xend)';
+            yi1 = max([1; round(analwin(1).*data.fs)]); yi2 = min([yi1 + numel(lfp(i).x) - 1; size(data.LFP, 1)]);
             lfp(i).y = data.LFP(yi1:yi2,data.chanlist);
             plot(lax(i), lfp(i).x, lfp(i).y./range(reshape(lfp(i).y, numel(lfp(i).y), 1)) - data.chanlist');
         end %for PSTH1 and 2
@@ -141,11 +156,15 @@ function out = psthlfpplots(app, data, nchans, nclusts)
             else
                 analwin = [app.(startfield).Value, app.(endfield).Value] + data.stimoffs(1);
             end
-            cyclet = data.evons(data.evons>analwin(1) & data.evons<analwin(2));
+            %The last stimulus cycle will likely be cut off in the middle. This screws up when MATLAB tries to plot that incomplete cycle.
+            fullevons = data.evons(1:(end-1)); 
+            cyclet = fullevons(fullevons>analwin(1) & fullevons<analwin(2));
             cycletsamp = round(cyclet*data.fs); cycleperiod = min(diff(cycletsamp));
             lfpcycle = NaN(cycleperiod, size(data.LFP, 2), numel(cyclet));
+            
             for cycle = 1:numel(cyclet)
-                startsamp = 1+cycletsamp(cycle); endsamp = cycletsamp(cycle)+cycleperiod;
+                startsamp = 1+cycletsamp(cycle); 
+                endsamp = cycletsamp(cycle)+cycleperiod;
                 lfpcycle(:,:,cycle) = data.LFP(startsamp:endsamp,:);
             end
             lfp(i).x = (1:cycleperiod)'./data.fs;
