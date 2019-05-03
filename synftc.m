@@ -8,10 +8,6 @@ frqlist = sort(unique(frqs));
 ftc = NaN(nchans, numel(frqlist));
 scale = 1./(analwin(2)-analwin(1))./trials;
 for chan = 1:nchans
-    size(stimspets>analwin(1))
-    size(stimspets<analwin(2)) 
-    size(channels ==chanlist(chan))
-    size(spetfreq)
     ftc(chan,:) = hist(spetfreq(stimspets>analwin(1)& stimspets<analwin(2) & ...
         channels ==chanlist(chan)), frqlist);
 end

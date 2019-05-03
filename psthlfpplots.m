@@ -94,6 +94,7 @@ function out = psthlfpplots(app, data, nchans, nclusts)
                 text(ax(1), app.PSTH1StartEdit.Value, 1.1 - j/nclusts - chani, num2str(baseline(1,(chani*nclusts)+j-1), '%0.2f'));
             end
         end
+
     else 
 %Average cycles
         period = mode(diff(data.evons));
@@ -103,6 +104,7 @@ function out = psthlfpplots(app, data, nchans, nclusts)
         binvec = 0:psthwindow:period;
             
         for i = 1:2
+            [tempst(i), ~, ~, ~] = synpstbin(app, data, i, spetfreq, str2double(app.FrequencyDrop.Value), spetlevel, targetlevel);
             reffield = ['PSTH' num2str(i) 'RefDrop']; startfield = ['PSTH' num2str(i) 'StartEdit']; endfield = ['PSTH' num2str(i) 'EndEdit'];
             if strcmpi(app.(reffield).Value, 'onset');  ref = data.stimons(1); 
             else; ref = data.stimoffs(1); end
@@ -123,7 +125,7 @@ function out = psthlfpplots(app, data, nchans, nclusts)
                     averate2(cluster, chan) = sum(bincount(:, cluster, chan)) / (app.(endfield).Value-app.(startfield).Value);
                     clustspets = pst(i).PSTHspets(pst(i).PSTHchans==chan & pst(i).PSTHclusters==cluster);
                     phase = 2 .* pi .* clustspets ./ period;
-                    VS(chan,cluster) = sqrt(sum(sin(phase)).^2 + sum(cos(phase)).^2)/numel(phase);
+                    VS(cluster, chan) = sqrt(sum(sin(phase)).^2 + sum(cos(phase)).^2)/numel(phase);
                 end
             end
             VS2(:,i) = reshape(VS, numel(VS), 1);
@@ -132,6 +134,10 @@ function out = psthlfpplots(app, data, nchans, nclusts)
             yrange3(i,:) = reshape(yrange2./psthwindow./ncycles, nclusts*nchans, 1);
             pst(i).bincount = reshape(bincount./psthwindow./ncycles, sx, nclusts*nchans); %bincount reports number of spikes per second per cycle
             pst(i).bintime = reshape(bintime, sx, nclusts*nchans);
+            binfs = 1/psthwindow;
+            figure(5+i);clf; pspectrum(pst(i).bincount(:, data.chanlist), binfs, 'FrequencyLimits', [0 100]);
+
+            
             if app.PSTHPopupCheck.Value; figure(2+i); clf; ax(i) = axes(); 
             else; axesfield = ['PSTH' num2str(i) 'Axes']; ax(i) = app.(axesfield); end
             cla(ax(i), 'reset');
