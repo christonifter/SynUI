@@ -67,9 +67,9 @@ function out = readtank(path)
 
     end
     if isfield(data.streams, 'RAW1')
-        fcl = 30;
-        fcu = 300;
         fny = data.streams.RAW1.fs/2; 
+        fcl = 300;
+        fcu = 3000;
         out.fs = data.streams.RAW1.fs;
          out.raw = data.streams.RAW1.data';
 %          out.LFPraw = data.streams.LFPw.data';
