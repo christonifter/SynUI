@@ -182,7 +182,6 @@ function out = psthlfpplots(app, data)
                 VS(chan) = sqrt(sum(sin(phase)).^2 + sum(cos(phase)).^2)/numel(phase);
             end
             VS2(:,i) = VS;
-            VS2
 
             yrange3(i,:) = yrange2./psthwindow./ncycles;
             pst(i).bincount = bincount./psthwindow./ncycles; %bincount reports number of spikes per second per cycle
@@ -308,7 +307,7 @@ function out = psthlfpplots(app, data)
             else
                 den = sqrt(postrate + prerate);
             end
-            ADndiffl(i) = (postrate - prerate) / den^2;
+            ADndiffl(i) = (postrate - prerate) / prerate;
             ADdiffl(i) = postrate - prerate;
             ADzl(i) = (postrate - prerate) / den;
         end
@@ -328,7 +327,7 @@ function out = psthlfpplots(app, data)
             else
                 den = sqrt(postrate + prerate);
             end
-            ADndiff(i) = (postrate - prerate) / den^2;
+            ADndiff(i) = (postrate - prerate) / prerate;
             ADdiff(i) = postrate - prerate;
             ADz(i) = (postrate - prerate) / den;
             binname{i} = ['BinCount_' num2str(data.channelsortorder(data.chanlist(i)))];
