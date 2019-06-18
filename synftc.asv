@@ -1,5 +1,5 @@
 
-function [ftc, ftcstats] = synftc(stimspets, spetfreq, analwin, channels, trials, chanlist, frqs, ax)
+function [ftc, ftcstats] = synftc(stimspets, spetfreq, analwin, channels, trials, chanlist, frqs, ax, threshcrit)
 %synftc creates an image plot of channel (x-axis) x frequency (y-axis) x
 %spike rate (color). It is called in synui during livestream and offline
 %analysis.
@@ -20,6 +20,7 @@ function [ftc, ftcstats] = synftc(stimspets, spetfreq, analwin, channels, trials
 %column 4: lower cutoff frequency (kHz), column 5: upper cutoff frequency
 %(kHz)
 %(nchans x %4)
+ftcstats = NaN(numel(chanlist), 5);
 if ~exist('ax', 'var')
     ax = axes();
 end
@@ -36,37 +37,37 @@ imagesc(ax, ftc);
 colormap(ax,'jet')
 
 
-% if exist('threshcrit', 'var')
-%     for chan = 1:nchans
-%          try
-%              if numel(frqlist) < 10
-%                 a = fit(frqlist, ftc(chan, :)'-threshcrit(chan), 'gauss1');
-%                 if a.a1 > 10 %threshold of 10 Hz above spontaneous works okay.
-%                  frqthresh = [-a.c1 * sqrt(log(a.a1/10)) + a.b1, a.c1 * sqrt(log(a.a1/10)) + a.b1] ;
-%                  ftcstats(chan, :) = [a.a1, a.b1, 2*a.c1, frqthresh];
-% %             figure(2); clf(2); hold on;
+if exist('threshcrit', 'var')
+    for chan = 1:nchans
+         try
+             if numel(frqlist) < 10
+                a = fit(frqlist, ftc(chan, :)'-threshcrit(chan), 'gauss1');
+                if a.a1 > 10 %threshold of 10 Hz above spontaneous works okay.
+                 frqthresh = [-a.c1 * sqrt(log(a.a1/10)) + a.b1, a.c1 * sqrt(log(a.a1/10)) + a.b1] ;
+                 ftcstats(chan, :) = [a.a1, a.b1, 2*a.c1, frqthresh];
+%             figure(2); clf(2); hold on;
 % %             rectangle('Position', [frqthresh(1), 0, frqthresh(2)-frqthresh(1), a.a1 + threshcrit(chan)], 'FaceColor', [0.8 0.8 1], 'EdgeColor', [1 1 1]);
-% %             plot(frqlist, ftc(chan, :)', 'k.');
-% %             plot(frqlist, a.a1.*exp(-((frqlist-a.b1)./a.c1).^2)+threshcrit(chan), 'r:') 
-% %             [threshcrit(chan) frqthresh(1) a.b1]
-% %             pause
-% %             hold off;
-%                 end
-%              else
-%                 a = fit(log(frqlist), ftc(chan, :)'-threshcrit(chan), 'gauss1');
-% %                 frqthresh = [exp(-a.c1 * sqrt(log(a.a1)) + a.b1) exp(a.c1 * sqrt(log(a.a1)) + a.b1) ];
-%                 ftcstats(chan, :) = [a.a1, exp(a.b1), 2*a.c1/log(2), exp([a.b1 - a.c1, a.b1 + a.c1])];
-% %             figure(2); clf(2); hold on;
-% %             rectangle('Position', [frqthresh(1), 0, frqthresh(2)-frqthresh(1), a.a1 + threshcrit(chan)], 'FaceColor', [0.8 0.8 1], 'EdgeColor', [1 1 1]);
-% %             plot(frqlist, ftc(chan, :)', 'k.');
-% %             plot(frqlist, a.a1.*exp(-((log(frqlist)-a.b1)./a.c1).^2)+threshcrit(chan), 'r:') 
-% %             hold off;
-%              end
-%         catch
-%         end
-%     end
-%     
-% end
+%             plot(frqlist, ftc(chan, :)', 'k.');
+%             plot(frqlist, a.a1.*exp(-((frqlist-a.b1)./a.c1).^2)+threshcrit(chan), 'r:') 
+%             [threshcrit(chan) frqthresh(1) a.b1]
+%             pause
+%             hold off;
+                end
+             else
+                a = fit(log(frqlist), ftc(chan, :)'-threshcrit(chan), 'gauss1');
+%                 frqthresh = [exp(-a.c1 * sqrt(log(a.a1)) + a.b1) exp(a.c1 * sqrt(log(a.a1)) + a.b1) ];
+                ftcstats(chan, :) = [a.a1, exp(a.b1), 2*a.c1/log(2), exp([a.b1 - a.c1, a.b1 + a.c1])];
+%             figure(2); clf(2); hold on;
+%             rectangle('Position', [frqthresh(1), 0, frqthresh(2)-frqthresh(1), a.a1 + threshcrit(chan)], 'FaceColor', [0.8 0.8 1], 'EdgeColor', [1 1 1]);
+%             plot(frqlist, ftc(chan, :)', 'k.');
+%             plot(frqlist, a.a1.*exp(-((log(frqlist)-a.b1)./a.c1).^2)+threshcrit(chan), 'r:') 
+%             hold off;
+             end
+        catch
+        end
+    end
+    
+end
 
 set(ax,'XTick', 1:numel(frqlist))
 set(ax,'YTick', 1:nchans)

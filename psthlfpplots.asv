@@ -256,7 +256,7 @@ function out = psthlfpplots(app, data)
     PSTH2plat = pst(2).bintime(PSTH2plati);
 %threshold rates
     if numel(unique(data.lvls))> 1 || numel(unique(data.frqs))> 1
-        out.statstable = table([]);
+        
     else
         threshpsth2 = pst(2).bincount > baseline;
         ADtotaldur = sum(threshpsth2) * psthwindow;
@@ -335,6 +335,7 @@ function out = psthlfpplots(app, data)
             'ADDiff_PSTH_Hz', 'ADPercChange_PSTH_percent', 'ADRatio_PSTH', 'ADzscore_PSTH', 'ADDiff_Total_Hz', 'ADPercChange_Total_percent', 'ADratio_Total', 'ADzscore_Total',  ...
             'ThreshHoldRate_Hz', 'ADDuration_Total_sec', 'ADSpikeCount_Total', ...
             'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont'});
+        end
         if app.ClustsCheck.Value
             cluster = app.data.cluster;
             clustampmat = NaN(numel(cluster), 1);
@@ -350,7 +351,6 @@ function out = psthlfpplots(app, data)
             out.statstable = addvars(out.statstable, peakChannel2, 'After', 1, 'NewVariableNames', {'Nearest_Channel'});
         end
 
-    end
 
         if ~isempty(VS2)
             out.statstable = addvars(out.statstable, VS2(:,1), VS2(:,2), 'NewVariableNames', {'VectorStrength1', 'VectorStrength2'});

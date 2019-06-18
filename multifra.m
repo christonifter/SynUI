@@ -1,4 +1,4 @@
-function multifra(stimspets, spetfreq, spetlevel, analwin, channels, trials, chanlist, frqs, lvls, ax)
+function fra = multifra(stimspets, spetfreq, spetlevel, analwin, channels, trials, chanlist, frqs, lvls, ax)
 if ~exist('ax', 'var')
     ax = axes();
 end
@@ -17,9 +17,9 @@ for chanc = 1:numel(chanlist)
         end
     end
 end
-
-fra = sum(fra, 3, 'omitnan').*scale;
-imagesc(ax, flipud(fra));
+fra = fra.*scale;
+mfra = sum(fra, 3, 'omitnan');
+imagesc(ax, flipud(mfra));
 colormap(ax,'jet')
 set(ax,'XTick', 1:numel(frqlist))
 set(ax,'XTickLabel', frqlist./1000)
