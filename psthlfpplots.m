@@ -81,6 +81,9 @@ function out = psthlfpplots(app, data)
         end
         baseline = poissinv(app.CLEdit.Value/100, averate(1,:));
         if strcmpi(app.PSTHbaseline.SelectedObject.Text, 'mean'); baseline = averate(1,:); end
+        yrange2 = [baseline; baseline].* 4;
+        yrange2(yrange2 == 0) = app.PSTHscaleEdit.Value;
+        yrange = yrange2;
         yrange = plotpsth(app, ax, pst, yrange, data.chanlist, stims, 1); 
         for i = 1:2
 
@@ -142,13 +145,14 @@ function out = psthlfpplots(app, data)
         end
 
         binvec = 0:psthwindow:period;
+        p = NaN(2,4096, numel(data.chanlist));
             
         for i = 1:2
 
             [tempst(i), ~, ~, ~] = synpstbin(app, data, i, spetfreq, str2double(app.FrequencyDrop.Value), spetlevel, targetlevel);
             psthwindow = app.PSTHBinEdit.Value./1000; 
             binfs = 1/psthwindow;
-            figure(5+i);clf; pspectrum(tempst(i).bincount, binfs, 'FrequencyLimits', [0 100]);
+            [p(i,:,:), f] = pspectrum(tempst(i).bincount, binfs, 'FrequencyLimits', [0 100]);
             reffield = ['PSTH' num2str(i) 'RefDrop']; 
             startfield = ['PSTH' num2str(i) 'StartEdit']; 
             endfield = ['PSTH' num2str(i) 'EndEdit'];
@@ -164,6 +168,7 @@ function out = psthlfpplots(app, data)
             PSTHsel = ~isnan(PSTHspets) & ismember(selchannels, data.chanlist);
             pst(i).PSTHchans = selchannels(PSTHsel); 
             pst(i).PSTHspets = PSTHspets(PSTHsel);
+            
             bincount = NaN(length(binvec), numel(data.chanlist));
             bintime = NaN(length(binvec), numel(data.chanlist));
             yrange2 = NaN(numel(data.chanlist), 1);
@@ -354,4 +359,21 @@ function out = psthlfpplots(app, data)
 
         if ~isempty(VS2)
             out.statstable = addvars(out.statstable, VS2(:,1), VS2(:,2), 'NewVariableNames', {'VectorStrength1', 'VectorStrength2'});
+            rat1 = squeeze(p(2,:,:)./p(1,:,:));
+            rat2 = squeeze(p(2,1,:)./p(1,1,:));
+            pchange = 20*log10(rat1')';
+            a = p(1,1,:);
+            b = averate(1,:);
+            a(:)./b(:).^2;
+            figure(7)
+            subplot(3,1,1)
+            plot(f,squeeze(p(1,:,:)));
+            title('Spectral Power pre-LDS')
+            subplot(3,1,2)
+            plot(f,squeeze(p(2,:,:)));
+            title('Spectral Power post-LDS')
+            subplot(3,1,3)
+            plot(f,pchange);
+            title('Power Change post/pre-LDS (dB)')
+            xlabel('Frequency (Hz)')
         end

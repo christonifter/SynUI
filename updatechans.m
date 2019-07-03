@@ -41,8 +41,13 @@ function [chanlist, channelsortorder] = updatechans(app)
         elseif app.BottomRadio.Value
             chanlist = ((numel(cluster)-str2double(app.ClustBottomEdit.Value)+1):numel(cluster))';
         elseif app.ClustRadio.Value
-            chanlist = eval(['[' app.ClustClustEdit.Value ']']);
-            chanlist = sorti(chanlist);
+%             chanlist = eval(['[' app.ClustClustEdit.Value ']']);
+%             chanlist = sorti(chanlist);
+            usechannels = eval(['[' app.ClustClustEdit.Value ']']);
+            nousechannels = setdiff(channelsortorder, usechannels);
+            
+            chanlist = 1:numel(usechannels);
+            channelsortorder= [usechannels'; nousechannels];
         end
     else
         chanvec = zeros(32,1);
