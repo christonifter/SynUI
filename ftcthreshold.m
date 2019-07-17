@@ -28,7 +28,18 @@ for chan = 1:nchans
             title([num2str(a.a1), ', ' num2str(a.b1), ', ' num2str(a.c1)])
          else %Iso-I
             a = fit(log(frqlist), ftc(chan, :)'-spontrate(chan), 'gauss1');
-            ftcstats(chan, :) = [a.a1, exp(a.b1), 2*a.c1/log(2), exp([a.b1 - a.c1, a.b1 + a.c1])];
+            ftcstats(chan, :) = [a.a1, exp(a.b1)./1000, 2*a.c1/log(2), exp([a.b1 - a.c1, a.b1 + a.c1])./1000];
+            
+            figure(10);
+            nrows = ceil(sqrt(nchans));
+            ncols = ceil(nchans./nrows);
+            subplot(nrows, ncols, chan)
+            plot(frqlist./1000, ftc(chan, :)', 'bo');
+            hold on;
+            plot(frqlist./1000, a.a1.*exp(-((log(frqlist)-a.b1)./a.c1).^2)+spontrate(chan), 'g-', 'LineWidth', 2)
+            plot(exp([a.b1 - a.c1, a.b1 + a.c1])./1000, [max(ftc(chan,:)) max(ftc(chan,:))], 'r-', 'Linewidth', 2)
+            hold off;
+            title([num2str(a.a1), ', ' num2str(a.b1), ', ' num2str(a.c1)])
          end
      catch ME
          chan

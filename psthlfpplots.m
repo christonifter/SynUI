@@ -81,9 +81,9 @@ function out = psthlfpplots(app, data)
         end
         baseline = poissinv(app.CLEdit.Value/100, averate(1,:));
         if strcmpi(app.PSTHbaseline.SelectedObject.Text, 'mean'); baseline = averate(1,:); end
-        yrange2 = [baseline; baseline].* 4;
-        yrange2(yrange2 == 0) = app.PSTHscaleEdit.Value;
-        yrange = yrange2;
+%         yrange2 = [baseline; baseline].* 4;
+%         yrange2(yrange2 == 0) = app.PSTHscaleEdit.Value;
+%         yrange = yrange2;
         yrange = plotpsth(app, ax, pst, yrange, data.chanlist, stims, 1); 
         for i = 1:2
 
@@ -123,13 +123,96 @@ function out = psthlfpplots(app, data)
             plot(lax(i), lfp(i).x, lfp(i).y./range(reshape(lfp(i).y, numel(lfp(i).y), 1)) - realchanlist', 'k');
             subspikei = find(data.spets>yi1/data.fs & data.spets<yi2/data.fs);
             subspikes = data.spets(subspikei);
+            
+            for clust = 1:numel(data.cluster)
+                pC2(clust) = data.cluster(clust).peakChannel2(1);
+            end
+            
             if app.ClustsCheck.Value
                 subclusters = data.clusters(subspikei);
-                pC = data.peakChannel(subclusters,1);
+                pC = pC2(subclusters);
                 plot(lax(i), subspikes-ref, -pC , 'ro')
             end
             hold(lax(i), 'off');
         end %for PSTH1 and 2
+        
+        threshpsth2 = pst(2).bincount > baseline;
+        ADtotaldur = sum(threshpsth2) * psthwindow;
+        ADtotalspikecount = sum((pst(2).bincount - baseline) .* threshpsth2) .* psthwindow;
+        for chani = 1:size(threshpsth2, 2)
+            [u, d] = findcross(threshpsth2(:,chani) - 0.5);
+            u = u +1;
+            if threshpsth2(1, chani)
+                u = [1;u];
+            end
+            if threshpsth2(end, chani)
+                d = [d;size(threshpsth2, 1)];
+            end
+            u = u(u<(30./psthwindow));
+            d = d(u<(30./psthwindow));
+            if numel(d) < 1
+                ADmaxcontdur(chani, 1) = 0;
+                ADonset(chani,1) = NaN;
+                ADoffset(chani,1) = NaN;
+                ADmaxcontspikecount(chani, 1) = 0;
+            else
+                [maxcontbin, ADmaxind] = max(d-u);
+                ADmaxcontdur(chani, 1) = maxcontbin .*psthwindow;
+                ADonset(chani,1) = u(ADmaxind).*psthwindow;
+                ADoffset(chani,1) = d(ADmaxind).*psthwindow;
+                ADmaxcontspikecount(chani, 1) = sum(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani) - baseline(chani)) .* psthwindow;
+            end
+        end
+        ADmaxcontdur(ADmaxcontdur<(3.*psthwindow)) = 0;
+        ADonset(ADmaxcontdur<(3.*psthwindow)) = NaN;
+        ADoffset(ADmaxcontdur<(3.*psthwindow)) = NaN;
+        ADmaxcontspikecount(ADmaxcontdur<(3.*psthwindow)) = 0;
+        ADndiff = NaN(numel(data.chanlist), 1);
+        ADratio = NaN(numel(data.chanlist), 1);
+        ADdiff = NaN(numel(data.chanlist), 1);
+        ADz = NaN(numel(data.chanlist), 1);
+
+        if strcmpi(app.PSTH1RefDrop.Value, 'onset')
+            analwin(1,:) = [app.PSTH1StartEdit.Value, app.PSTH1EndEdit.Value] + data.stimons(1);
+        else
+            analwin(1,:) = [app.PSTH1StartEdit.Value, app.PSTH1EndEdit.Value] + data.stimoffs(1);
+        end
+        if strcmpi(app.PSTH2RefDrop.Value, 'onset')
+            analwin(2,:) = [app.PSTH2StartEdit.Value, app.PSTH2EndEdit.Value] + data.stimons(1);
+        else
+            analwin(2,:) = [app.PSTH2StartEdit.Value, app.PSTH2EndEdit.Value] + data.stimoffs(1);
+        end
+
+        for loop = 1:2
+            if loop == 2
+                analwin(1,:) = [0 data.stimons(1)];
+                analwin(2,:) = [data.stimoffs(1) size(data.LFP, 1)/data.fs];
+            end
+            for i = 1:numel(data.chanlist)
+                if app.ClustsCheck.Value
+                    spikesi = app.data.cluster(data.channelsortorder(data.chanlist(i))).spikes;
+                    binname{i} = ['BinCount_' num2str(data.channelsortorder(data.chanlist(i)))];
+                else
+                    spikesi = data.spets(data.channels == data.chanlist(i));
+                end
+                postcount = sum(spikesi>analwin(2,1) & spikesi<analwin(2,2));
+                posttime = analwin(2,2) - analwin(2,1);
+                postrate = postcount/posttime;
+                precount = sum(spikesi>analwin(1,1) & spikesi<analwin(1,2));
+                pretime = analwin(1,2) - analwin(1,1);
+                prerate = precount/pretime;
+                if postrate + prerate == 0
+                    den = 1;
+                else
+                    den = sqrt(postrate + prerate);
+                end
+                ADndiff(loop,i) = (postrate - prerate) / prerate;
+                ADratio(loop,i) = postrate / prerate;
+                ADdiff(loop,i) = postrate - prerate;
+                ADz(loop,i) = (postrate - prerate) / den;
+            end
+        end
+        
         for chani = 1:numel(data.chanlist)'
            text(ax(1), app.PSTH1StartEdit.Value, .1 - data.chanlist(chani), num2str(baseline(chani), '%0.2f'));
         end
@@ -180,6 +263,38 @@ function out = psthlfpplots(app, data)
                 clustspets = pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan));
                 phase = 2 .* pi .* clustspets ./ period;
                 VS(chan) = sqrt(sum(sin(phase)).^2 + sum(cos(phase)).^2)/numel(phase);
+                [u, d] = findcross(bincount(:,chan) - 0.5*max(bincount(:,chan))+.1);
+                if numel(u) > 0
+                    if u(1)>d(1)
+                        u = [0; u];
+                    end
+                    if u(end)>d(end)
+                        d = [d; 1E4];
+                    end
+                    if numel(u) == 1
+                        halfmaxdur(chan,i) = (d - u)*app.PSTHBinEdit.Value;
+                    else
+                        gaps = u(2:end)-d(1:end-1);
+                        siggaps = find(gaps>2);
+                        if sum(siggaps) == 0
+                            halfmaxdur(chan,i) = (d(end) - u(1))*app.PSTHBinEdit.Value;
+                        else
+                            [~, plat] = max(bincount(:,chan));
+                            maxpeak = find(d>=plat, 1);
+                            peakonset = bintime(u(siggaps(find(siggaps < maxpeak, 1, 'last'))+1), chan);
+                            peakoffset = bintime(d(siggaps(find(siggaps >= maxpeak, 1, 'first'))), chan);
+                            if isempty(peakonset)
+                                peakonset = bintime(u(1), chan);
+                            end
+                            if isempty(peakoffset)
+                                peakoffset = bintime(d(end), chan);
+                            end
+                            halfmaxdur(chan,i) = (peakoffset - peakonset)*1000;
+                        end
+                    end
+                else
+                    halfmaxdur(chan,i) = NaN;
+                end
             end
             VS2(:,i) = VS;
 
@@ -197,6 +312,11 @@ function out = psthlfpplots(app, data)
             cla(ax(i), 'reset');
             averate(i,:) = averate2;
         end
+        [~, MFi] = min(abs(f - 1/period));
+        AC = squeeze(p(:, MFi, :));
+        DC = squeeze(p(:, 1, :));
+        TCF = AC./DC;
+
         yrange = plotpsth(app, ax, pst, yrange3, data.chanlist, [0 stimdur; 0 stimdur], 1);
         for i = 1:2
             baseline = poissinv(app.CLEdit.Value/100, averate(1,:));
@@ -257,108 +377,36 @@ function out = psthlfpplots(app, data)
     CI5(2,:) = poissinv(5/100, averate(2,:));
     CI95(1,:) = poissinv(95/100, averate(1,:));
     CI95(2,:) = poissinv(95/100, averate(2,:));
+    [PSTH1pmax, PSTH1plati] = max(pst(1).bincount);
+    PSTH1plat = pst(1).bintime(PSTH1plati);
     [PSTH2pmax, PSTH2plati] = max(pst(2).bincount);
     PSTH2plat = pst(2).bintime(PSTH2plati);
 %threshold rates
     if numel(unique(data.lvls))> 1 || numel(unique(data.frqs))> 1
         out.statstable = table([]);
     else
-        threshpsth2 = pst(2).bincount > baseline;
-        ADtotaldur = sum(threshpsth2) * psthwindow;
-        ADtotalspikecount = sum((pst(2).bincount - baseline) .* threshpsth2) .* psthwindow;
-        for chani = 1:size(threshpsth2, 2)
-            [u, d] = findcross(threshpsth2(:,chani) - 0.5);
-            u = u +1;
-            if threshpsth2(1, chani)
-                u = [1;u];
-            end
-            if threshpsth2(end, chani)
-                d = [d;size(threshpsth2, 1)];
-            end
-            if numel(d) < 1
-                ADmaxcontdur(chani, 1) = 0;
-                ADonset(chani,1) = NaN;
-                ADoffset(chani,1) = NaN;
-                ADmaxcontspikecount(chani, 1) = 0;
-            else
-                [maxcontbin, ADmaxind] = max(d-u);
-                ADmaxcontdur(chani, 1) = maxcontbin .*psthwindow;
-                ADonset(chani,1) = u(ADmaxind).*psthwindow;
-                ADoffset(chani,1) = d(ADmaxind).*psthwindow;
-                ADmaxcontspikecount(chani, 1) = sum(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani) - baseline(chani)) .* psthwindow;
-            end
-        end
-        ADndiff = NaN(numel(data.chanlist), 1);
-        ADratio = NaN(numel(data.chanlist), 1);
-        ADdiff = NaN(numel(data.chanlist), 1);
-        ADz = NaN(numel(data.chanlist), 1);
 
-        if strcmpi(app.PSTH1RefDrop.Value, 'onset')
-            analwin(1,:) = [app.PSTH1StartEdit.Value, app.PSTH1EndEdit.Value] + data.stimons(1);
-        else
-            analwin(1,:) = [app.PSTH1StartEdit.Value, app.PSTH1EndEdit.Value] + data.stimoffs(1);
-        end
-        if strcmpi(app.PSTH2RefDrop.Value, 'onset')
-            analwin(2,:) = [app.PSTH2StartEdit.Value, app.PSTH2EndEdit.Value] + data.stimons(1);
-        else
-            analwin(2,:) = [app.PSTH2StartEdit.Value, app.PSTH2EndEdit.Value] + data.stimoffs(1);
-        end
+        out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
+            'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_ms', ...
+            'MaxRate_PSTH2_Hz', 'MaxRateLatency_PSTH2_ms'});
+        
+        
 
-        for loop = 1:2
-            if loop == 2
-                analwin(1,:) = [0 data.stimons(1)];
-                analwin(2,:) = [data.stimoffs(1) size(data.LFP, 1)/data.fs];
-            end
-            for i = 1:numel(data.chanlist)
-                if app.ClustsCheck.Value
-                    spikesi = app.data.cluster(data.channelsortorder(data.chanlist(i))).spikes;
-                    binname{i} = ['BinCount_' num2str(data.channelsortorder(data.chanlist(i)))];
-                else
-                    spikesi = data.spets(data.channels == data.chanlist(i));
-                end
-                postcount = sum(spikesi>analwin(2,1) & spikesi<analwin(2,2));
-                posttime = analwin(2,2) - analwin(2,1);
-                postrate = postcount/posttime;
-                precount = sum(spikesi>analwin(1,1) & spikesi<analwin(1,2));
-                pretime = analwin(1,2) - analwin(1,1);
-                prerate = precount/pretime;
-                if postrate + prerate == 0
-                    den = 1;
-                else
-                    den = sqrt(postrate + prerate);
-                end
-                ADndiff(loop,i) = (postrate - prerate) / prerate;
-                ADratio(loop,i) = postrate / prerate;
-                ADdiff(loop,i) = postrate - prerate;
-                ADz(loop,i) = (postrate - prerate) / den;
-            end
-        end
-        out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', ...
-            PSTH2pmax', PSTH2plat', ADdiff(1,:)', 100.*ADndiff(1,:)', ADratio(1,:)', ADz(1,:)', ADdiff(2,:)', 100.*ADndiff(2,:)', ADratio(2,:)', ADz(2,:)', ...
+        if isempty(VS2)
+            out.statstable = addvars(out.statstable, ADdiff(1,:)', 100.*ADndiff(1,:)', ADratio(1,:)', ADz(1,:)', ...
+                ADdiff(2,:)', 100.*ADndiff(2,:)', ADratio(2,:)', ADz(2,:)', ...
             baseline', ADtotaldur', ADtotalspikecount', ADmaxcontdur, ADonset, ADoffset, ADmaxcontspikecount, ...
-            'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', 'MaxRate_PSTH2_Hz', 'MaxRateLatency_PSTH2_ms', ...
-            'ADDiff_PSTH_Hz', 'ADPercChange_PSTH_percent', 'ADRatio_PSTH', 'ADzscore_PSTH', 'ADDiff_Total_Hz', 'ADPercChange_Total_percent', 'ADratio_Total', 'ADzscore_Total',  ...
+            'NewVariableNames', {'ADDiff_PSTH_Hz', 'ADPercChange_PSTH_percent', 'ADRatio_PSTH', 'ADzscore_PSTH', ...
+            'ADDiff_Total_Hz', 'ADPercChange_Total_percent', 'ADratio_Total', 'ADzscore_Total',  ...
             'ThreshHoldRate_Hz', 'ADDuration_Total_sec', 'ADSpikeCount_Total', ...
             'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont'});
-        if app.ClustsCheck.Value
-            cluster = app.data.cluster;
-            clustampmat = NaN(numel(cluster), 1);
-            for i = 1:numel(cluster)
-                clustampmat(i,:) = cluster(i).peakChannel2(1);
-            end
-            peakChannel2 = clustampmat(data.channelsortorder(data.chanlist)); %1xn vector of nearest channel
-
-            out.psth1table = splitvars(out.psth1table, 'BinCount', 'NewVariableNames', binname);
-            out.psth2table = splitvars(out.psth2table, 'BinCount', 'NewVariableNames', binname);
-            out.statstable = addvars(out.statstable, data.channelsortorder(data.chanlist), 'After', 1, 'NewVariableNames', {'Cluster'});
-            out.statstable = removevars(out.statstable, {'Channel'});
-            out.statstable = addvars(out.statstable, peakChannel2, 'After', 1, 'NewVariableNames', {'Nearest_Channel'});
-        end
-
-    end
-
-        if ~isempty(VS2)
-            out.statstable = addvars(out.statstable, VS2(:,1), VS2(:,2), 'NewVariableNames', {'VectorStrength1', 'VectorStrength2'});
+        else
+            
+            out.statstable = addvars(out.statstable, halfmaxdur(:,1), halfmaxdur(:,2), VS2(:,1), VS2(:,2), ...
+                AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
+                100.*TCF(1,:)', 100.*TCF(2,:)', 10*log10(AC(2,:)'./AC(1,:)'), 100.*(TCF(2,:)' - TCF(1,:)'), ...
+                'NewVariableNames', {'Duration1_ms', 'Duration2_ms', 'VectorStrength1', 'VectorStrength2', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
+                'DCPower1', 'DCPower2', 'TemporalCodingFraction1', 'TemporalCodingFraction2', 'ModGain_dB', 'TCF_Diff'});
             rat1 = squeeze(p(2,:,:)./p(1,:,:));
             rat2 = squeeze(p(2,1,:)./p(1,1,:));
             pchange = 20*log10(rat1')';
@@ -377,3 +425,27 @@ function out = psthlfpplots(app, data)
             title('Power Change post/pre-LDS (dB)')
             xlabel('Frequency (Hz)')
         end
+        
+        
+        
+        if app.ClustsCheck.Value
+            cluster = app.data.cluster;
+            clustampmat = NaN(numel(cluster), 1);
+            for i = 1:numel(cluster)
+                clustampmat(i,:) = cluster(i).peakChannel2(1);
+            end
+            peakChannel2 = clustampmat(data.channelsortorder(data.chanlist)); %1xn vector of nearest channel
+            for i = 1:numel(data.chanlist)
+                spikesi = app.data.cluster(data.channelsortorder(data.chanlist(i))).spikes;
+                binname{i} = ['BinCount_' num2str(data.channelsortorder(data.chanlist(i)))];
+            end
+
+
+            out.psth1table = splitvars(out.psth1table, 'BinCount', 'NewVariableNames', binname);
+            out.psth2table = splitvars(out.psth2table, 'BinCount', 'NewVariableNames', binname);
+            out.statstable = addvars(out.statstable, data.channelsortorder(data.chanlist), 'After', 1, 'NewVariableNames', {'Cluster'});
+            out.statstable = removevars(out.statstable, {'Channel'});
+            out.statstable = addvars(out.statstable, peakChannel2, 'After', 1, 'NewVariableNames', {'Nearest_Channel'});
+        end
+        
+    end
