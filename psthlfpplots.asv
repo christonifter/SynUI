@@ -264,7 +264,7 @@ function out = psthlfpplots(app, data)
                 phase = 2 .* pi .* clustspets ./ period;
                 VS(chan) = sqrt(sum(sin(phase)).^2 + sum(cos(phase)).^2)/numel(phase);
                 [u, d] = findcross(bincount(:,chan) - 0.5*max(bincount(:,chan))+.1);
-                if numel(u) > 0 & numel(d) > 0
+                if numel(u) > 0
                     if u(1)>d(1)
                         u = [1; u];
                     end

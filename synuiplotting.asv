@@ -26,18 +26,16 @@ function synuiplotting(app)
     pause(.1)
     data.nchans = max(data.chanlist);
     [spetfreq, spetlevel, stimspets, trials] = freqlevelspet(data.spets, data.stimons, data.frqs, data.lvls);
-%spike times aligned to stimulus onsets are stored in stimspets
-%The frequency and level of the last stimulus preceding each spike is stored in spetfreq and spetlevel
     binwindow = app.BinEdit.Value./1000; %PSTH bin size (sec)
     analwin = [app.OnsetEdit.Value app.OffsetEdit.Value]./1000; %ftc analysis window;
 %tuning curve
     ax = app.FTCAxes; cla(app.FTCAxes, 'reset');
-    if app.FTCPopupCheck.Value
-        figure(2); clf; ax = axes();
-    end
-    if numel(unique(data.frqs))>1 || numel(unique(data.lvls)) > 1 %not LDS
+    if numel(unique(data.frqs))>1 || numel(unique(data.lvls)) > 1 %FRA
         spontrates = findspontrate(data.spets, data.stimons, data.channels, data.chanlist, [-0.1 0]);
         spontrates = spontrates(data.chanlist);
+    end
+    if app.FTCPopupCheck.Value
+        figure(2); clf; ax = axes();
     end
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
