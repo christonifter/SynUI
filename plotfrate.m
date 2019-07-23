@@ -3,7 +3,7 @@ function plotfrate(app, frate, bintime, stimons, stimoffs, chanlist)
     if app.ratePopupCheck.Value
         figure(1); clf;
         ax = axes();
-        title(ax, [app.TankEditField.Value newline num2str(app.BinEdit.Value) ' msec bins'])
+        title(ax, [app.TankEdit.Value newline num2str(app.BinEdit.Value) ' msec bins'])
     else
         ax = app.rateAxes;
     end
