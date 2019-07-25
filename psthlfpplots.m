@@ -39,7 +39,7 @@ function out = psthlfpplots(app, data)
 %FRA
         if app.PSTHPopupCheck.Value
             figure(3); clf; ax = axes(); cla(ax, 'reset');
-            title(ax, [app.TankEditField.Value newline 'Level = ', app.LevelDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
+            title(ax, [app.TankEdit.Value newline 'Level = ', app.LevelDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
         else
             ax = app.PSTH1Axes;
         end
@@ -51,7 +51,7 @@ function out = psthlfpplots(app, data)
         
         if app.PSTHPopupCheck.Value
             figure(4); clf; ax = axes(); cla(ax, 'reset');
-            title(ax, [app.TankEditField.Value newline 'Freq = ', app.FrequencyDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
+            title(ax, [app.TankEdit.Value newline 'Freq = ', app.FrequencyDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
         else
             ax = app.PSTH2Axes; 
         end
@@ -124,11 +124,11 @@ function out = psthlfpplots(app, data)
             subspikei = find(data.spets>yi1/data.fs & data.spets<yi2/data.fs);
             subspikes = data.spets(subspikei);
             
-            for clust = 1:numel(data.cluster)
-                pC2(clust) = data.cluster(clust).peakChannel2(1);
-            end
             
             if app.ClustsCheck.Value
+                for clust = 1:numel(data.cluster)
+                    pC2(clust) = data.cluster(clust).peakChannel2(1);
+                end
                 subclusters = data.clusters(subspikei);
                 pC = pC2(subclusters);
                 plot(lax(i), subspikes-ref, -pC , 'ro')
@@ -304,7 +304,7 @@ function out = psthlfpplots(app, data)
             pst(i).bintime = bintime; %is bintime == binvec?
             if app.PSTHPopupCheck.Value
                 figure(2+i); clf; ax(i) = axes(); 
-                title(ax(i), [app.TankEditField.Value newline 'Frequency = ' app.FrequencyDrop.Value ' Hz, ' 'Level = ' app.FrequencyDrop.Value ' dB, ' ...
+                title(ax(i), [app.TankEdit.Value newline 'Frequency = ' app.FrequencyDrop.Value ' Hz, ' 'Level = ' app.FrequencyDrop.Value ' dB, ' ...
                 app.PSTHscaleradio.SelectedObject.Text ' normalization' newline num2str(numel(pst(i).PSTHspets)) ' spikes, ' ...
                 num2str(sum(data.frqs==str2double(app.FrequencyDrop.Value))) ' trials'])
             else

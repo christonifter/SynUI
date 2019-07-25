@@ -37,7 +37,6 @@ function synuiplotting(app)
     end
     if numel(unique(data.frqs))>1 || numel(unique(data.lvls)) > 1 %not LDS
         spontrates = findspontrate(data.spets, data.stimons, data.channels, data.chanlist, [-0.1 0]);
-        spontrates = spontrates(data.chanlist);
     end
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
