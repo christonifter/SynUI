@@ -71,7 +71,7 @@ function out = psthlfpplots(app, data)
 
             if app.PSTHPopupCheck.Value
                 figure(2+i); clf; ax(i) = axes(); 
-                title(ax(i), [app.TankEditField.Value newline 'Frequency = ' app.FrequencyDrop.Value ' Hz, ' 'Level = ' app.FrequencyDrop.Value ' dB, ' ...
+                title(ax(i), [app.TankEdit.Value newline 'Frequency = ' app.FrequencyDrop.Value ' Hz, ' 'Level = ' app.FrequencyDrop.Value ' dB, ' ...
                     app.PSTHscaleradio.SelectedObject.Text ' normalization' newline num2str(numel(pst(i).PSTHspets)) ' spikes, ' ...
                     num2str(sum(data.frqs==str2double(app.FrequencyDrop.Value))) ' trials'])
             else
@@ -236,6 +236,7 @@ function out = psthlfpplots(app, data)
             psthwindow = app.PSTHBinEdit.Value./1000; 
             binfs = 1/psthwindow;
             [p(i,:,:), f] = pspectrum(tempst(i).bincount, binfs, 'FrequencyLimits', [0 100]);
+            
             reffield = ['PSTH' num2str(i) 'RefDrop']; 
             startfield = ['PSTH' num2str(i) 'StartEdit']; 
             endfield = ['PSTH' num2str(i) 'EndEdit'];
@@ -264,7 +265,7 @@ function out = psthlfpplots(app, data)
                 phase = 2 .* pi .* clustspets ./ period;
                 VS(chan) = sqrt(sum(sin(phase)).^2 + sum(cos(phase)).^2)/numel(phase);
                 [u, d] = findcross(bincount(:,chan) - 0.5*max(bincount(:,chan))+.1);
-                if numel(u) > 0
+                if numel(u) > 0 & numel(d) > 0
                     if u(1)>d(1)
                         u = [1; u];
                     end
@@ -385,10 +386,9 @@ function out = psthlfpplots(app, data)
     if numel(unique(data.lvls))> 1 || numel(unique(data.frqs))> 1
         out.statstable = table([]);
     else
-
         out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
-            'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_ms', ...
-            'MaxRate_PSTH2_Hz', 'MaxRateLatency_PSTH2_ms'});
+            'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_sec', ...
+            'MaxRate_PSTH2_Hz', 'MaxRateLatency_PSTH2_sec'});
         
         
 
@@ -401,10 +401,13 @@ function out = psthlfpplots(app, data)
             'ThreshHoldRate_Hz', 'ADDuration_Total_sec', 'ADSpikeCount_Total', ...
             'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont'});
         else
-            
+            hasntmultiplespikes = find(sum(tempst(1).bincount>0) < 1 | sum(tempst(2).bincount>0) < 1);
+            modgaindb = 10*log10(AC(2,:)'./AC(1,:)');
+            modgaindb(hasntmultiplespikes) = NaN;
+
             out.statstable = addvars(out.statstable, halfmaxdur(:,1), halfmaxdur(:,2), VS2(:,1), VS2(:,2), ...
                 AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
-                100.*TCF(1,:)', 100.*TCF(2,:)', 10*log10(AC(2,:)'./AC(1,:)'), 100.*(TCF(2,:)' - TCF(1,:)'), ...
+                100.*TCF(1,:)', 100.*TCF(2,:)', modgaindb, 100.*(TCF(2,:)' - TCF(1,:)'), ...
                 'NewVariableNames', {'Duration1_ms', 'Duration2_ms', 'VectorStrength1', 'VectorStrength2', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
                 'DCPower1', 'DCPower2', 'TemporalCodingFraction1', 'TemporalCodingFraction2', 'ModGain_dB', 'TCF_Diff'});
             rat1 = squeeze(p(2,:,:)./p(1,:,:));
@@ -447,5 +450,5 @@ function out = psthlfpplots(app, data)
             out.statstable = removevars(out.statstable, {'Channel'});
             out.statstable = addvars(out.statstable, peakChannel2, 'After', 1, 'NewVariableNames', {'Nearest_Channel'});
         end
-        
+        out.statstable.modGain
     end

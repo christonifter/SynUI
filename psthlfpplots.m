@@ -236,6 +236,7 @@ function out = psthlfpplots(app, data)
             psthwindow = app.PSTHBinEdit.Value./1000; 
             binfs = 1/psthwindow;
             [p(i,:,:), f] = pspectrum(tempst(i).bincount, binfs, 'FrequencyLimits', [0 100]);
+            
             reffield = ['PSTH' num2str(i) 'RefDrop']; 
             startfield = ['PSTH' num2str(i) 'StartEdit']; 
             endfield = ['PSTH' num2str(i) 'EndEdit'];
@@ -400,10 +401,10 @@ function out = psthlfpplots(app, data)
             'ThreshHoldRate_Hz', 'ADDuration_Total_sec', 'ADSpikeCount_Total', ...
             'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont'});
         else
-            hasntmultiplespikes = find((averate(2,:).*(app.PSTH1EndEdit.Value - app.PSTH1StartEdit.Value))<1.5 &...
-                (averate(2,:).*(app.PSTH1EndEdit.Value - app.PSTH1StartEdit.Value))<1.5);
+            hasntmultiplespikes = find(sum(tempst(1).bincount>0) < 1.5 | sum(tempst(2).bincount>0) < 1.5);
             modgaindb = 10*log10(AC(2,:)'./AC(1,:)');
             modgaindb(hasntmultiplespikes) = NaN;
+
             out.statstable = addvars(out.statstable, halfmaxdur(:,1), halfmaxdur(:,2), VS2(:,1), VS2(:,2), ...
                 AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
                 100.*TCF(1,:)', 100.*TCF(2,:)', modgaindb, 100.*(TCF(2,:)' - TCF(1,:)'), ...
@@ -449,5 +450,4 @@ function out = psthlfpplots(app, data)
             out.statstable = removevars(out.statstable, {'Channel'});
             out.statstable = addvars(out.statstable, peakChannel2, 'After', 1, 'NewVariableNames', {'Nearest_Channel'});
         end
-        out.statstable
     end
