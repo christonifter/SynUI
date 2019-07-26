@@ -104,25 +104,25 @@ function synuiplotting(app)
             ax = app.Clust1Axes; cla(app.Clust1Axes, 'reset');
         end
         hold(ax, 'on');
-        vvec = [1:-1/8:0 0:1/8:1 1:-1/8:0 0:1/8:1]';
-        vv = 1:16;
-        colmat = [vvec(vv+16) vvec(vv+11) vvec(vv+6)];
+        vvec = [1:-1/16:0 0:1/16:1 1:-1/16:0 0:1/16:1]';
+        vv = 1:32;
+        colmat = [vvec(vv+32) vvec(vv+22) vvec(vv+12)];
 
         clustampmat = NaN(numel(cluster), 1);
         for i = 1:numel(cluster)
             clustampmat(i,:) = cluster(i).peakChannel2(1);
         end
         peakChannel2 = clustampmat(channelsortorder); %1xn vector of nearest channel
-        lfptemp = [zeros(26, 32); data.LFP; zeros(26, 32)];
-        msnip = NaN(numel(cluster), 51, 16);
+        lfptemp = [zeros(26, size(data.LFP, 2)); data.LFP; zeros(26, size(data.LFP, 2))];
+        msnip = NaN(numel(cluster), 51, size(data.LFP, 2));
         for i = 1:numel(cluster)
-            snippets = NaN(numel(cluster(channelsortorder(i)).spikes), 51, 16);
+            snippets = NaN(numel(cluster(channelsortorder(i)).spikes), 51, size(data.LFP, 2));
             for spike = 1:numel(cluster(channelsortorder(i)).spikes)
                 spikewin = round(cluster(channelsortorder(i)).spikes(spike) * data.fs) + (1:51);
-                snippets(spike,:,:) = lfptemp(spikewin, 1:16);
+                snippets(spike,:,:) = lfptemp(spikewin, :);
             end
                 msnip(i,:,:) = squeeze(mean(snippets, 1));
-                plot(ax,((1:16) + repmat((-25:25)', 1,16)./60), squeeze(msnip(i,:,:))./range(msnip(:)) - i, 'k');
+                plot(ax,((1:size(data.LFP, 2)) + repmat((-25:25)', 1,size(data.LFP, 2))./60), squeeze(msnip(i,:,:))./range(msnip(:)) - i, 'k');
             plot(ax,(cluster(channelsortorder(i)).peakChannel2(1) + (-25:25)./60), ...
                msnip(i,:,cluster(channelsortorder(i)).peakChannel2(1))./range(msnip(:)) - i, 'Color', colmat(peakChannel2(i),:));
         end
