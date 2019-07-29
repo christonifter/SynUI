@@ -1,5 +1,5 @@
 
-function [ftc, ftcstats] = synftc(stimspets, spetfreq, analwin, channels, trials, chanlist, frqs, ax)
+function ftc = synftc(stimspets, spetfreq, analwin, channels, trials, chanlist, frqs, ax)
 %synftc creates an image plot of channel (x-axis) x frequency (y-axis) x
 %spike rate (color). It is called in synui during livestream and offline
 %analysis.

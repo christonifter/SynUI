@@ -41,14 +41,14 @@ function synuiplotting(app)
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
         fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax);
-        fra(:,9,9) = fra(:,8,9);
         for chan = 1:size(fra,1)
             chanfra = squeeze(fra(chan,:,:));
+            chanfra
             [BLi(chan, 1), BFi(chan, 1)] = ind2sub(size(chanfra), find(chanfra == max(chanfra(:)), 1));
             peakrate(chan,1) = max(chanfra(:));
         end
         for freq = 1:size(fra, 2)
-            ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), spontrates, .1*max(fra(:)));
+            ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), poissinv(0.95, spontrates), .1*max(fra(:)));
         end
         [~,CFi] = min(ftcstats(:,:,4), [], 2);
         frqlist = sort(unique(data.frqs));
@@ -58,18 +58,20 @@ function synuiplotting(app)
         CF = frqlist(CFi);
         thresh = diag(squeeze(ftcstats(:,CFi,4)));
         if app.ClustsCheck.Value
-            ftctable = table(data.channelsortorder(data.chanlist), peakrate, BF./1000, BL, CF./1000, thresh, ...
-                'VariableNames', {'Cluster', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB'});
+            ftctable = table(data.channelsortorder(data.chanlist), peakrate, BF./1000, CF./1000, BL, thresh, ...
+                'VariableNames', {'Cluster', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'CharFreq_Model_kHz', 'BestLevel_Obs_dB', 'Thresh_dB'});
         else
-            ftctable = table(data.chanlist, peakrate, BF./1000, BL, CF./1000, thresh, ...
-                'VariableNames', {'Channel', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB'});
+            ftctable = table(data.chanlist, peakrate, BF./1000, CF./1000, BL, thresh, ...
+                'VariableNames', {'Channel', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'CharFreq_Model_kHz', 'BestLevel_Obs_dB', 'Thresh_dB'});
         end
+        ftctable
+        
     elseif numel(unique(data.frqs))>1 && numel(unique(data.lvls)) == 1 %ISO-I
         trials = reshape(trials, 1, numel(trials));
         ftc = synftc(stimspets, spetfreq, analwin, data.channels, trials(1:end), data.chanlist, data.frqs, ax);
         [oprate, obf] = max(ftc, [], 2);
         frqlist = sort(unique(data.frqs))./1000;
-        ftcstats = ftcthreshold(ftc, sort(unique(data.frqs)), spontrates, .1*max(ftc(:)));
+        ftcstats = ftcthreshold(ftc, sort(unique(data.frqs)), poissinv(0.95, spontrates), 10);
         if app.ClustsCheck.Value
             ftctable = table(data.channelsortorder(data.chanlist), oprate, frqlist(obf), ftcstats, 'VariableNames', {'Cluster', 'PeakRate_Obs_Hz', 'BestFrequency_Obs_kHz', 'ftcstats'});
         else
@@ -84,7 +86,7 @@ function synuiplotting(app)
     elseif numel(unique(data.frqs))==1 && numel(unique(data.lvls)) > 1 %ISO-F
         trials = reshape(trials, 1, numel(trials));          
         ftc = synftc(stimspets, spetlevel, analwin, data.channels, trials(1:end), data.chanlist, data.lvls, ax);
-        ftcstats = ftcthreshold(ftc, sort(unique(data.lvls)), spontrates, .1*max(ftc(:)));
+        ftcstats = ftcthreshold(ftc, sort(unique(data.lvls)), poissinv(0.95, spontrates), .1*max(fra(:)));
         if app.ClustsCheck.Value
             ftctable = table(data.channelsortorder(data.chanlist), ftcstats(:,4), 'VariableNames', {'Cluster', 'Threshold_dBSPL'});
         else

@@ -5,7 +5,7 @@ end
 frqlist = sort(unique(frqs));
 lvllist = sort(unique(lvls));
 fra = NaN(numel(lvllist), numel(frqlist), numel(chanlist));
-scale = 1./(analwin(2)-analwin(1))./trials./numel(chanlist);
+scale = 1./(analwin(2)-analwin(1))./trials;
 for chanc = 1:numel(chanlist)
     chani = (channels == chanlist(chanc));
     for frqc = 1:numel(frqlist)
@@ -17,8 +17,8 @@ for chanc = 1:numel(chanlist)
         end
     end
 end
-fra = fra.*scale;
-mfra = sum(fra, 3, 'omitnan');
+fra = permute(fra.*scale, [3 1 2]);
+mfra = squeeze(sum(fra, 1, 'omitnan'))./numel(chanlist);
 imagesc(ax, flipud(mfra));
 colormap(ax,'jet')
 set(ax,'XTick', 1:numel(frqlist))
