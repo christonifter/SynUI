@@ -341,8 +341,10 @@ function out = psthlfpplots(app, data)
                 analwin = [app.(startfield).Value, app.(endfield).Value] + data.stimoffs(1);
             end
             %The last stimulus cycle will likely be cut off in the middle. This screws up when MATLAB tries to plot that incomplete cycle.
-            lastevbeforeend = max(find(data.evons * data.fs< size(data.raw,1)));
-            fullevons = data.evons(1:(lastevbeforeend-1));                 
+            find(data.evons * data.fs> size(data.raw,1))
+            fullevons = data.evons(1:(end-1)); 
+            data.evons((end-1):end)
+            size(data.raw, 1)./data.fs
             cyclet = fullevons(fullevons>analwin(1) & fullevons<analwin(2));
             cycletsamp = round(cyclet*data.fs); cycleperiod = min(diff(cycletsamp));
             lfpcycle = NaN(cycleperiod, size(LFP, 2), numel(cyclet));
