@@ -38,28 +38,28 @@ function out = psthlfpplots(app, data)
     if numel(unique(data.lvls))> 1 && numel(unique(data.frqs))> 1 
 %FRA
         if app.PSTHPopupCheck.Value
-            figure(3); clf; ax = axes(); cla(ax, 'reset');
-            title(ax, [app.TankEdit.Value newline 'Level = ', app.LevelDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
+            figure(3); clf; ax(1) = axes(); cla(ax(1), 'reset');
+            title(ax(1), [app.TankEdit.Value newline 'Level = ', app.LevelDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
         else
-            ax = app.PSTH1Axes;
+            ax(1) = app.PSTH1Axes;
         end
         for freqi = 1:numel(frqlist)
             [pst(freqi), yrange(freqi,:), averate(freqi,:), stims] = synpstbin(app, data, 1, spetfreq, frqlist(freqi), spetlevel, targetlevel);
         end
-        plotpsth(app, ax, pst, yrange, data.chanlist, stims, 1.2*(app.PSTH1EndEdit.Value - app.PSTH1StartEdit.Value));
-        set(ax, 'XTick', (1:numel(pst)) - 1); set(ax, 'XTickLabel', compose('%d', frqlist)); xlabel(ax, 'Frequency');
+        plotpsth(app, ax(1), pst, averate, yrange, data.chanlist, stims, 1.2*(app.PSTH1EndEdit.Value - app.PSTH1StartEdit.Value));
+        set(ax(1), 'XTick', (1:numel(pst)) - 1); set(ax(1), 'XTickLabel', compose('%d', frqlist)); xlabel(ax(1), 'Frequency');
         
         if app.PSTHPopupCheck.Value
-            figure(4); clf; ax = axes(); cla(ax, 'reset');
-            title(ax, [app.TankEdit.Value newline 'Freq = ', app.FrequencyDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
+            figure(4); clf; ax(2) = axes(); cla(ax(2), 'reset');
+            title(ax(2), [app.TankEdit.Value newline 'Freq = ', app.FrequencyDrop.Value ', ', app.PSTHscaleradio.SelectedObject.Text ' normalization']);
         else
-            ax = app.PSTH2Axes; 
+            ax(2) = app.PSTH2Axes; 
         end
         for lvli = 1:numel(lvllist)
             [pst(lvli), yrange(lvli, :), averate(lvli,:), stims] = synpstbin(app, data, 1, spetfreq, targetfreq, spetlevel, lvllist(lvli));
         end
-        plotpsth(app, ax, pst, yrange, data.chanlist, stims, 1.2*(app.PSTH1EndEdit.Value - app.PSTH1StartEdit.Value)); 
-        set(ax, 'XTick', (1:numel(pst)) - 1); set(ax, 'XTickLabel', compose('%d', lvllist)); xlabel(ax, 'Level');
+        plotpsth(app, ax(2), pst, averate, yrange, data.chanlist, stims, 1.2*(app.PSTH1EndEdit.Value - app.PSTH1StartEdit.Value)); 
+        set(ax(2), 'XTick', (1:numel(pst)) - 1); set(ax(2), 'XTickLabel', compose('%d', lvllist)); xlabel(ax(2), 'Level');
     elseif isempty(data.evons) || app.PSTHCycleCheck.Value == 0 
 %No cycle averaging
 
@@ -79,20 +79,11 @@ function out = psthlfpplots(app, data)
             end
             cla(ax(i), 'reset');
         end
-        baseline = poissinv(app.CLEdit.Value/100, averate(1,:));
-        if strcmpi(app.PSTHbaseline.SelectedObject.Text, 'mean'); baseline = averate(1,:); end
-%         yrange2 = [baseline; baseline].* 4;
-%         yrange2(yrange2 == 0) = app.PSTHscaleEdit.Value;
-%         yrange = yrange2;
-        yrange = plotpsth(app, ax, pst, yrange, data.chanlist, stims, 1); 
+        [yrange, baseline] = plotpsth(app, ax, pst, averate, yrange, data.chanlist, stims, 1); 
         for i = 1:2
 
             ylim(ax(i), -1.*[max(data.chanlist)+.5 min(data.chanlist)-1]); ylabel(ax(i), 'Channel')
             readfield = ['PSTH' num2str(i) 'RefDrop']; xlabel(ax(i), ['Time relative to ' app.(readfield).Value ' (sec)'])
-            hold(ax(i), 'on');
-            plot(ax(i), [pst(i).bintime(find(~isnan(pst(i).bintime), 1)) pst(i).bintime(end)], ([baseline; baseline]./yrange(i,:)) - ...
-            data.chanlist', 'r:');
-            hold(ax(i), 'off');
             field1 = ['PSTH' num2str(i) 'StartEdit']; field2 = ['PSTH' num2str(i) 'EndEdit'];
             xlim(ax(i), [app.(field1).Value app.(field2).Value]);
         %LFP
@@ -142,14 +133,15 @@ function out = psthlfpplots(app, data)
         for chani = 1:size(threshpsth2, 2)
             [u, d] = findcross(threshpsth2(:,chani) - 0.5);
             u = u +1;
+            d = d + 1;
             if threshpsth2(1, chani)
                 u = [1;u];
             end
             if threshpsth2(end, chani)
                 d = [d;size(threshpsth2, 1)];
             end
-            u = u(u<(30./psthwindow));
-            d = d(u<(30./psthwindow));
+            u = u((u-.5)<(30./psthwindow));
+            d = d((u-.5)<(30./psthwindow));
             if numel(d) < 1
                 ADmaxcontdur(chani, 1) = 0;
                 ADonset(chani,1) = NaN;
@@ -158,8 +150,8 @@ function out = psthlfpplots(app, data)
             else
                 [maxcontbin, ADmaxind] = max(d-u);
                 ADmaxcontdur(chani, 1) = maxcontbin .*psthwindow;
-                ADonset(chani,1) = u(ADmaxind).*psthwindow;
-                ADoffset(chani,1) = d(ADmaxind).*psthwindow;
+                ADonset(chani,1) = (u(ADmaxind)-.5).*psthwindow;
+                ADoffset(chani,1) = (d(ADmaxind)-.5).*psthwindow;
                 ADmaxcontspikecount(chani, 1) = sum(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani) - baseline(chani)) .* psthwindow;
             end
         end
@@ -211,10 +203,6 @@ function out = psthlfpplots(app, data)
                 ADdiff(loop,i) = postrate - prerate;
                 ADz(loop,i) = (postrate - prerate) / den;
             end
-        end
-        
-        for chani = 1:numel(data.chanlist)'
-           text(ax(1), app.PSTH1StartEdit.Value, .1 - data.chanlist(chani), num2str(baseline(chani), '%0.2f'));
         end
 
     else 
@@ -318,15 +306,9 @@ function out = psthlfpplots(app, data)
         DC = squeeze(p(:, 1, :));
         TCF = AC./DC;
 
-        yrange = plotpsth(app, ax, pst, yrange3, data.chanlist, [0 stimdur; 0 stimdur], 1);
+        yrange = plotpsth(app, ax, pst, averate, yrange3, data.chanlist, [0 stimdur; 0 stimdur], 1);
         for i = 1:2
-            baseline = poissinv(app.CLEdit.Value/100, averate(1,:));
-            if strcmpi(app.PSTHbaseline.SelectedObject.Text, 'mean'); baseline = averate(1,:); end
-            hold(ax(i), 'on')
-            plot(ax(i), [pst(i).bintime(find(~isnan(pst(i).bintime), 1)) pst(i).bintime(end)], ([baseline; baseline]./yrange(i,:)) - ...
-            data.chanlist', 'r:');
             axis(ax(i), [0 period -max(data.chanlist) 1-min(data.chanlist)]);
-            hold(ax(i), 'off');
     %LFP
             reffield = ['PSTH' num2str(i) 'RefDrop']; startfield = ['PSTH' num2str(i) 'StartEdit']; endfield = ['PSTH' num2str(i) 'EndEdit'];
             if app.LFPPopupCheck.Value
@@ -355,9 +337,6 @@ function out = psthlfpplots(app, data)
             lfpmeans = mean(lfpcycle, 3); 
             lfp(i).y = lfpmeans(:, realchanlist);
             plot(lax(i), lfp(i).x,  lfp(i).y./range(reshape(lfp(i).y, numel(lfp(i).y), 1)) - realchanlist');
-        end
-        for chani = 1:numel(data.chanlist)
-             text(ax(1), 0, .1 - data.chanlist(chani), num2str(baseline(chani), '%0.2f'));
         end
 
 

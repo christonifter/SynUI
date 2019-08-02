@@ -21,6 +21,8 @@ fra = permute(fra.*scale, [3 1 2]);
 mfra = squeeze(sum(fra, 1, 'omitnan'))./numel(chanlist);
 
 cscale = [0 max(mfra(:))];
+thresh
+thresh/max(mfra(:))
 
 imagesc(ax, flipud(mfra));
 colormap(ax,'jet')
@@ -34,16 +36,11 @@ title(ax, 'Frequency Response Area')
 colorbar(ax)
 axis(ax, [.5, numel(frqlist)+.5, .5, numel(lvllist)+.5 ])
 
+vvec = [1:-1/16:0 0:1/16:1 1:-1/16:0 0:1/16:1]';
+vv = 1:32;
+colmat = [vvec(vv+32) vvec(vv+22) vvec(vv+12)];
 
-% ngrads = 100;
-% vvec = [zeros(1, ngrads) 0:1/ngrads:1 ones(1, ngrads) 1:-1/ngrads:0 zeros(1, ngrads)]';
-% vv = 1:(ngrads*3.5);
-% colmat = [vvec(vv) vvec(vv+round(ngrads*.75)) vvec(vv+round(ngrads*1.5))];
-% threshi = round(ngrads*thresh/max(mfra(:)));
-% 
-% colmat(1,:) = [1 1 1];
-%         
-% hosatchel = get(ax, 'colormap');
-% hosatchel(1,:) = [1 1 1];
-% set(ax, 'colormap', colmat);
-% % set(ax, 'colormap', hosatchel);
+        
+hosatchel = get(ax, 'colormap');
+hosatchel(1,:) = [1 1 1];
+set(ax, 'colormap', hosatchel);

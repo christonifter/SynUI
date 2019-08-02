@@ -40,7 +40,7 @@ function synuiplotting(app)
     end
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
-        fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax);
+        fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax, poissinv(0.95, spontrates));
         fra(:,9,9) = fra(:,8,9);
         for chan = 1:size(fra,1)
             chanfra = squeeze(fra(chan,:,:));
@@ -48,22 +48,30 @@ function synuiplotting(app)
             peakrate(chan,1) = max(chanfra(:));
         end
         for freq = 1:size(fra, 2)
-            ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), spontrates, .1*max(fra(:)));
+            ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), spontrates, poissinv(0.95, spontrates)-spontrates);
         end
+        hold(ax, 'on')
+        plot(ax, 1:numel(unique(data.frqs)), numel(unique(data.lvls)) - ftcstats(:,:,4)./10, 'w')
+        hold(ax, 'off')
         [~,CFi] = min(ftcstats(:,:,4), [], 2);
         frqlist = sort(unique(data.frqs));
         lvllist = sort(unique(data.lvls));
         BL = lvllist(BLi);
         BF = frqlist(BFi);
         CF = frqlist(CFi);
+        allthresh = ftcstats(:,:,4);
         thresh = diag(squeeze(ftcstats(:,CFi,4)));
         if app.ClustsCheck.Value
-            ftctable = table(data.channelsortorder(data.chanlist), peakrate, BF./1000, BL, CF./1000, thresh, ...
-                'VariableNames', {'Cluster', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB'});
+            ftctable = table(data.channelsortorder(data.chanlist), peakrate, BF./1000, BL, CF./1000, thresh, allthresh, ...
+                'VariableNames', {'Cluster', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB', 'AllThresh'});
         else
-            ftctable = table(data.chanlist, peakrate, BF./1000, BL, CF./1000, thresh, ...
-                'VariableNames', {'Channel', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB'});
+            ftctable = table(data.chanlist, peakrate, BF./1000, BL, CF./1000, thresh, allthresh, ...
+                'VariableNames', {'Channel', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB', 'AllThresh'});
         end
+        for i = 1:numel(frqlist)
+            threshnames{i} = ['Thresh_' num2str(frqlist(i)./1000), 'kHz_dB'];
+        end
+        ftctable= splitvars(ftctable, 'AllThresh', 'NewVariableNames', threshnames);
     elseif numel(unique(data.frqs))>1 && numel(unique(data.lvls)) == 1 %ISO-I
         trials = reshape(trials, 1, numel(trials));
         ftc = synftc(stimspets, spetfreq, analwin, data.channels, trials(1:end), data.chanlist, data.frqs, ax);

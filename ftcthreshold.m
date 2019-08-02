@@ -12,8 +12,8 @@ for chan = 1:nchans
         fo = fitoptions('Method', 'NonlinearLeastSquares', 'Lower', [0 10 0], 'Upper', [1E4 120 1E4]);
          if numel(frqlist) < 10 %RLN
             a = fit(frqlist, ftc(chan, :)'-spontrate(chan), 'gauss1', fo);
-            if a.a1 > threshcrit %threshold of 10 Hz above spontaneous works okay.
-             frqthresh = [-a.c1 * sqrt(log(a.a1/threshcrit)) + a.b1, a.c1 * sqrt(log(a.a1/threshcrit)) + a.b1] ;
+            if a.a1 > threshcrit(chan) %threshold of 10 Hz above spontaneous works okay.
+             frqthresh = [-a.c1 * sqrt(log(a.a1/threshcrit(chan))) + a.b1, a.c1 * sqrt(log(a.a1/threshcrit(chan))) + a.b1] ;
              ftcstats(chan, :) = [a.a1, a.b1, 2*a.c1, frqthresh];
             else
              frqthresh = [NaN NaN] ;
@@ -51,4 +51,5 @@ for chan = 1:nchans
          chan
          ME
      end
+     pause
 end
