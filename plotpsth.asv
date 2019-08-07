@@ -20,25 +20,23 @@ function [yrange, baseline] = plotpsth(app, ax, pst, averate, yrange, chanlist, 
             end
             plot(ax(i), pst(i).PSTHspets./scalet, -pst(i).PSTHchans, 'k.');
 
-%Option 1 (recommended by CML) finds confidence level from poisson distribution of # spikes per bin period
+%Option 1 (recommended by CML) finds confidence level from poisson distribution of # events per bin period
 %However, the confidence level will vary with bin period
              baseline = poissinv(app.CLEdit.Value/100, averate(1,:).*psthwindow)./psthwindow;
 
             
 %Option 2 finds confidence level from normal distribution with mu = average pre firing rate, sigma = std pre firing rate
 %However, spike rates are not gaussian at low spike rates 
-            if app.PSTHCycleCheck.Value
-                baseline = norminv(app.CLEdit.Value/100, averate(1,:), std(pst(1).bincount));
-                baseline(isnan(baseline)) = 0;
-            end
+%             baseline = norminv(app.CLEdit.Value/100, averate(1,:), std(pst(1).bincount));
+%             baseline(isnan(baseline)) = 0;
 
-%Option 3 finds confidence level from poisson distribution of total #
-%spikes from pre period
+%Option 3
+%              baseline = poissinv(app.CLEdit.Value/100, averate(1,:).*1)./1;
 %             baseline = poissinv(app.CLEdit.Value/100, sum(pst(1).bincount)).*psthwindow./(pst(1).bintime(end,:) - pst(1).bintime(1,:));
             switch lower(app.PSTHbaseline.SelectedObject.Text)
                 case 'mean'
                     baseline = averate(1,:);
-                case 'psth 1'
+                case 'psth'
                     if app.PSTHCycleCheck.Value
                         baseline = pst(1).bincount;
                     end

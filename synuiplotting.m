@@ -110,7 +110,6 @@ function synuiplotting(app)
             set(ax, 'YTickLabel', channelsortorder);
         end
     end
-    ftctable
 %running spike rate average
     bincount = NaN(round(max(data.spets)/binwindow), data.nchans);
     for chan = data.chanlist'

@@ -359,14 +359,7 @@ function out = psthlfpplots(app, data)
     CI95(1,:) = poissinv(95/100, averate(1,:).*psthwindow)./psthwindow;
     CI95(2,:) = poissinv(95/100, averate(2,:).*psthwindow)./psthwindow;
     
-    if app.PSTHCycleCheck.Value
-            CI5(1,:) = norminv(5/100, averate(1,:), std(pst(1).bincount));
-            CI5(2,:) = normrinv(5/100, averate(2,:), std(pst(2).bincount));
-            CI95(1,:) = norminv(95/100, averate(1,:), std(pst(1).bincount));
-            CI95(2,:) = norminv(95/100, averate(2,:), std(pst(2).bincount));
-            CI5(isnan(CI5)) = 0;
-            CI95(isnan(CI95)) = 0;
-    end
+    
     
     [PSTH1pmax, PSTH1plati] = max(pst(1).bincount);
     PSTH1plat = pst(1).bintime(PSTH1plati);
@@ -376,10 +369,8 @@ function out = psthlfpplots(app, data)
     if numel(unique(data.lvls))> 1 || numel(unique(data.frqs))> 1
         out.statstable = table([]);
     else
-        out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', ...
-            CI95(1,:)', PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
-            'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', ...
-            'p95_Confidence_Level', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_sec', ...
+        out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
+            'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_sec', ...
             'MaxRate_PSTH2_Hz', 'MaxRateLatency_PSTH2_sec'});
         
         
