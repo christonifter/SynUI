@@ -4,34 +4,35 @@ function ftcstats = ftcthreshold(ftc, frqlist, spontrate, threshcrit)
 %It takes into account spontaneous firing
 %Thresholds are defined as the two standard deviations from the gaussian
 %mean
-
 nchans = size(ftc, 1);
 ftcstats = NaN(nchans, 5);
 for chan = 1:nchans
      try
-        fo = fitoptions('Method', 'NonlinearLeastSquares', 'Lower', [0 10 0], 'Upper', [1E4 120 1E4]);
          if numel(frqlist) < 10 %RLN
-            a = fit(frqlist, ftc(chan, :)'-spontrate(chan), 'gauss1', fo);
-            if a.a1 > threshcrit(chan) %threshold of 10 Hz above spontaneous works okay.
-             frqthresh = [-a.c1 * sqrt(log(a.a1/threshcrit(chan))) + a.b1, a.c1 * sqrt(log(a.a1/threshcrit(chan))) + a.b1] ;
-             ftcstats(chan, :) = [a.a1, a.b1, 2*a.c1, frqthresh];
+            a = fit(frqlist, ftc(chan, :)'-spontrate(chan), 'linearinterp');
+            model = a(1:100);
+            [u, d] = findcross(model-threshcrit(chan));
+            if ~isempty(u)
+                thresh = u(1);
             else
-             frqthresh = [NaN NaN] ;
+                thresh = NaN;
             end
-            figure(10);
             if nchans < 50
                 nrows = ceil(sqrt(nchans));
                 ncols = ceil(nchans./nrows);
                 subplot(nrows, ncols, chan)
             end
-            plot(frqlist, ftc(chan, :)', 'bo');
+            figure(10);
+            plot(frqlist,ftc(chan, :)'-spontrate(chan), 'b')
             hold on;
-            plot((1:100), a.a1.*exp(-(((1:100)-a.b1)./a.c1).^2)+spontrate(chan), 'g-', 'LineWidth', 2)
-            plot([frqthresh(1) frqthresh(1)], [0 max(ftc(chan,:))], 'r--', 'Linewidth', 4)
+            plot(1:100, model, 'g')
+            plot([1 100], [threshcrit(chan) threshcrit(chan)], 'm--')
+            plot([thresh thresh], [0 max(ftc(chan,:))], 'r--', 'Linewidth', 4)
             hold off;
-            title([num2str(a.a1), ', ' num2str(a.b1), ', ' num2str(a.c1)])
-         else %Iso-I
-            a = fit(log(frqlist), ftc(chan, :)'-spontrate(chan), 'gauss1');
+            ftcstats(chan) = thresh;
+        else %Iso-I
+            fo = fitoptions('Method', 'NonlinearLeastSquares', 'Lower', [0 0 0], 'Upper', [1E4 100 1E4]);
+            a = fit(log(frqlist), ftc(chan, :)'-spontrate(chan), 'gauss1', fo);
             ftcstats(chan, :) = [a.a1, exp(a.b1)./1000, 2*a.c1/log(2), exp([a.b1 - a.c1, a.b1 + a.c1])./1000];
             
             figure(10);
@@ -42,7 +43,7 @@ for chan = 1:nchans
             end
             plot(frqlist./1000, ftc(chan, :)', 'bo');
             hold on;
-            plot(frqlist./1000, a.a1.*exp(-((log(frqlist)-a.b1)./a.c1).^2)+spontrate(chan), 'g-', 'LineWidth', 2)
+            plot(1:70, a.a1.*exp(-((log((1:70).*1000)-a.b1)./a.c1).^2)+spontrate(chan), 'g-', 'LineWidth', 2)
             plot(exp([a.b1 - a.c1, a.b1 + a.c1])./1000, [max(ftc(chan,:)) max(ftc(chan,:))], 'r-', 'Linewidth', 2)
             hold off;
             title([num2str(a.a1), ', ' num2str(a.b1), ', ' num2str(a.c1)])
@@ -51,5 +52,4 @@ for chan = 1:nchans
          chan
          ME
      end
-     pause
 end

@@ -19,5 +19,5 @@ spikeisinanalwin = mod(spikestimeindex,2) == 1;
 analchans = channels(spikeisinanalwin);
 totaltime = (analwin(2)-analwin(1))*numel(analwins)/2;
 
-spontrates = histcounts(analchans, .5+(0:numel(chanlist)))'./ totaltime;
+spontrates = histcounts(analchans, .5+(0:numel(chanlist)))'./1;
 spontrates = spontrates(chanlist);

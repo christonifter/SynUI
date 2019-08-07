@@ -1,4 +1,4 @@
-function fra = multifra(stimspets, spetfreq, spetlevel, analwin, channels, trials, chanlist, frqs, lvls, ax, thresh)
+function fra = multifra(stimspets, spetfreq, spetlevel, analwin, channels, trials, chanlist, frqs, lvls, ax)
 if ~exist('ax', 'var')
     ax = axes();
 end

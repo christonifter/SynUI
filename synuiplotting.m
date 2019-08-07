@@ -36,11 +36,16 @@ function synuiplotting(app)
         figure(2); clf; ax = axes();
     end
     if numel(unique(data.frqs))>1 || numel(unique(data.lvls)) > 1 %not LDS
-        spontrates = findspontrate(data.spets, data.stimons, data.channels, data.chanlist, [-0.1 0]);
+        spontwin = [-0.2 0];
+        spontrates = findspontrate(data.spets, data.stimons, data.channels, data.chanlist, spontwin);
+        totaltime = (spontwin(2)-spontwin(1))*numel(data.stimons)/2;
+        spontsig = poissinv(0.95, spontrates);
+        spontsig = ((spontsig-spontrates)*2.5+1+spontrates)./totaltime;
+        spontrates = spontrates./totaltime;
     end
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
-        fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax, poissinv(0.95, spontrates));
+        fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax);
         fra(:,9,9) = fra(:,8,9);
         for chan = 1:size(fra,1)
             chanfra = squeeze(fra(chan,:,:));
@@ -48,25 +53,25 @@ function synuiplotting(app)
             peakrate(chan,1) = max(chanfra(:));
         end
         for freq = 1:size(fra, 2)
-            ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), spontrates, poissinv(0.95, spontrates)-spontrates);
+            ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), spontrates, spontsig);
         end
         hold(ax, 'on')
-        plot(ax, 1:numel(unique(data.frqs)), numel(unique(data.lvls)) - ftcstats(:,:,4)./10, 'w')
+        plot(ax, 1:numel(unique(data.frqs)), 1+numel(unique(data.lvls)) - ftcstats(:,:,1)./10, 'wo-', 'LineWidth', 4)
         hold(ax, 'off')
-        [~,CFi] = min(ftcstats(:,:,4), [], 2);
+        [~,CFi] = min(ftcstats(:,:,1), [], 2);
         frqlist = sort(unique(data.frqs));
         lvllist = sort(unique(data.lvls));
         BL = lvllist(BLi);
         BF = frqlist(BFi);
         CF = frqlist(CFi);
-        allthresh = ftcstats(:,:,4);
-        thresh = diag(squeeze(ftcstats(:,CFi,4)));
+        allthresh = ftcstats(:,:,1);
+        thresh = diag(squeeze(ftcstats(:,CFi,1)));
         if app.ClustsCheck.Value
             ftctable = table(data.channelsortorder(data.chanlist), peakrate, BF./1000, BL, CF./1000, thresh, allthresh, ...
-                'VariableNames', {'Cluster', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB', 'AllThresh'});
+                'VariableNames', {'Cluster', 'PeakRate_Hz', 'BestFreq_kHz', 'BestLevel_dB', 'CharFreq_kHz', 'Thresh_CF_dB', 'AllThresh'});
         else
             ftctable = table(data.chanlist, peakrate, BF./1000, BL, CF./1000, thresh, allthresh, ...
-                'VariableNames', {'Channel', 'PeakRate_Obs_Hz', 'BestFreq_Obs_kHz', 'BestLevel_Obs_dB', 'CharFreq_Model_kHz', 'Thresh_Model_dB', 'AllThresh'});
+                'VariableNames', {'Channel', 'PeakRate_Hz', 'BestFreq_kHz', 'BestLevel_dB', 'CharFreq_kHz', 'Thresh_CF_dB', 'AllThresh'});
         end
         for i = 1:numel(frqlist)
             threshnames{i} = ['Thresh_' num2str(frqlist(i)./1000), 'kHz_dB'];
@@ -77,7 +82,7 @@ function synuiplotting(app)
         ftc = synftc(stimspets, spetfreq, analwin, data.channels, trials(1:end), data.chanlist, data.frqs, ax);
         [oprate, obf] = max(ftc, [], 2);
         frqlist = sort(unique(data.frqs))./1000;
-        ftcstats = ftcthreshold(ftc, sort(unique(data.frqs)), spontrates, .1*max(ftc(:)));
+        ftcstats = ftcthreshold(ftc, sort(unique(data.frqs)), spontrates, spontsig);
         if app.ClustsCheck.Value
             ftctable = table(data.channelsortorder(data.chanlist), oprate, frqlist(obf), ftcstats, 'VariableNames', {'Cluster', 'PeakRate_Obs_Hz', 'BestFrequency_Obs_kHz', 'ftcstats'});
         else
@@ -92,7 +97,7 @@ function synuiplotting(app)
     elseif numel(unique(data.frqs))==1 && numel(unique(data.lvls)) > 1 %ISO-F
         trials = reshape(trials, 1, numel(trials));          
         ftc = synftc(stimspets, spetlevel, analwin, data.channels, trials(1:end), data.chanlist, data.lvls, ax);
-        ftcstats = ftcthreshold(ftc, sort(unique(data.lvls)), spontrates, .1*max(ftc(:)));
+        ftcstats = ftcthreshold(ftc, sort(unique(data.lvls)), spontrates, spontsig);
         if app.ClustsCheck.Value
             ftctable = table(data.channelsortorder(data.chanlist), ftcstats(:,4), 'VariableNames', {'Cluster', 'Threshold_dBSPL'});
         else
@@ -105,7 +110,7 @@ function synuiplotting(app)
             set(ax, 'YTickLabel', channelsortorder);
         end
     end
-
+    ftctable
 %running spike rate average
     bincount = NaN(round(max(data.spets)/binwindow), data.nchans);
     for chan = data.chanlist'
