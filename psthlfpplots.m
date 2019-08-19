@@ -360,12 +360,12 @@ function out = psthlfpplots(app, data)
     CI95(2,:) = poissinv(95/100, averate(2,:).*psthwindow)./psthwindow;
     
     if app.PSTHCycleCheck.Value
-            CI5(1,:) = norminv(5/100, averate(1,:), std(pst(1).bincount));
-            CI5(2,:) = normrinv(5/100, averate(2,:), std(pst(2).bincount));
-            CI95(1,:) = norminv(95/100, averate(1,:), std(pst(1).bincount));
-            CI95(2,:) = norminv(95/100, averate(2,:), std(pst(2).bincount));
-            CI5(isnan(CI5)) = 0;
-            CI95(isnan(CI95)) = 0;
+        CI5(1,:) = norminv(5/100, averate(1,:), std(pst(1).bincount));
+        CI5(2,:) = norminv(5/100, averate(2,:), std(pst(2).bincount));
+        CI95(1,:) = norminv(95/100, averate(1,:), std(pst(1).bincount));
+        CI95(2,:) = norminv(95/100, averate(2,:), std(pst(2).bincount));
+        CI5(isnan(CI5)) = 0;
+        CI95(isnan(CI95)) = 0;
     end
     
     [PSTH1pmax, PSTH1plati] = max(pst(1).bincount);

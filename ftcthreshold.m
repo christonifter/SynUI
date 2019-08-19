@@ -9,7 +9,7 @@ ftcstats = NaN(nchans, 5);
 for chan = 1:nchans
      try
          if numel(frqlist) < 10 %RLN
-            a = fit(frqlist, ftc(chan, :)'-spontrate(chan), 'linearinterp');
+            a = fit(frqlist, ftc(chan, :)', 'linearinterp');
             model = a(1:100);
             [u, d] = findcross(model-threshcrit(chan));
             if ~isempty(u)
@@ -17,19 +17,19 @@ for chan = 1:nchans
             else
                 thresh = NaN;
             end
-            if nchans < 50
-                nrows = ceil(sqrt(nchans));
-                ncols = ceil(nchans./nrows);
-                subplot(nrows, ncols, chan)
-            end
-            figure(10);
-            plot(frqlist,ftc(chan, :)'-spontrate(chan), 'b')
-            hold on;
-            plot(1:100, model, 'g')
-            plot([1 100], [threshcrit(chan) threshcrit(chan)], 'm--')
-            plot([thresh thresh], [0 max(ftc(chan,:))], 'r--', 'Linewidth', 4)
-            hold off;
-            ftcstats(chan) = thresh;
+%             figure(10);
+% %             if nchans < 50
+% %                 nrows = ceil(sqrt(nchans));
+% %                 ncols = ceil(nchans./nrows);
+% %                 subplot(nrows, ncols, chan)
+% %             end
+%             plot(frqlist,ftc(chan, :)', 'b')
+%             hold on;
+%             plot(1:100, model, 'g')
+%             plot([1 100], [threshcrit(chan) threshcrit(chan)], 'm--')
+%             plot([thresh thresh], [0 max(ftc(chan,:))], 'r--', 'Linewidth', 4)
+%             hold off;
+%             ftcstats(chan) = thresh;
         else %Iso-I
             fo = fitoptions('Method', 'NonlinearLeastSquares', 'Lower', [0 0 0], 'Upper', [1E4 100 1E4]);
             a = fit(log(frqlist), ftc(chan, :)'-spontrate(chan), 'gauss1', fo);
