@@ -24,7 +24,7 @@ fs = data.fs;
 clear data
 segmentstarts = 1+ [0; segmentends(1:(end-1))];
 
-%% save snippets (kinda slow)
+%% save snippets compute means (kinda slow)
 for j = 1:max(spikeClusters)
     j
     clind = find(spikeClusters == j);
@@ -38,7 +38,7 @@ for j = 1:max(spikeClusters)
     peakamp(j,:) = squeeze(range(msnip(j,:,:), 2));
 end
 
-%% count spikes per experiment (fast)
+
 spikecount = NaN(max(spikeClusters), numel(experimentsi));
 for i = 1:numel(experimentsi)
     load([outpath subject site char(folders(experimentsi(i))) '.mat'])
@@ -47,7 +47,7 @@ for i = 1:numel(experimentsi)
     end
 end
 
-%% plots (fast)
+
 figure(1); clf(1); hold on;
 for j = 1:max(spikeClusters)
     pj = max(peakamp(j,:), [], 2);

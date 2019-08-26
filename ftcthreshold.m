@@ -29,7 +29,7 @@ for chan = 1:nchans
 %             plot([1 100], [threshcrit(chan) threshcrit(chan)], 'm--')
 %             plot([thresh thresh], [0 max(ftc(chan,:))], 'r--', 'Linewidth', 4)
 %             hold off;
-%             ftcstats(chan) = thresh;
+            ftcstats(chan) = thresh;
         else %Iso-I
             fo = fitoptions('Method', 'NonlinearLeastSquares', 'Lower', [0 0 0], 'Upper', [1E4 100 1E4]);
             a = fit(log(frqlist), ftc(chan, :)'-spontrate(chan), 'gauss1', fo);

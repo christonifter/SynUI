@@ -153,16 +153,23 @@ function synuiplotting(app)
         peakChannel2 = clustampmat(channelsortorder); %1xn vector of nearest channel
         lfptemp = [zeros(26, size(data.LFP, 2)); data.LFP; zeros(26, size(data.LFP, 2))];
         msnip = NaN(numel(cluster), 51, size(data.LFP, 2));
-        for i = 1:numel(cluster)
-            snippets = NaN(numel(cluster(channelsortorder(i)).spikes), 51, size(data.LFP, 2));
-            for spike = 1:numel(cluster(channelsortorder(i)).spikes)
-                spikewin = round(cluster(channelsortorder(i)).spikes(spike) * data.fs) + (1:51);
+        for i = 1:numel(data.chanlist)
+            clus = channelsortorder(data.chanlist(i));
+            snippets = NaN(numel(cluster(clus).spikes), 51, size(data.LFP, 2));
+            for spike = 1:numel(cluster(clus).spikes)
+                spikewin = round(cluster(clus).spikes(spike) * data.fs) + (1:51);
                 snippets(spike,:,:) = lfptemp(spikewin, :);
             end
-                msnip(i,:,:) = squeeze(mean(snippets, 1));
-                plot(ax,((1:size(data.LFP, 2)) + repmat((-25:25)', 1,size(data.LFP, 2))./60), squeeze(msnip(i,:,:))./range(msnip(:)) - i, 'k');
-            plot(ax,(cluster(channelsortorder(i)).peakChannel2(1) + (-25:25)./60), ...
-               msnip(i,:,cluster(channelsortorder(i)).peakChannel2(1))./range(msnip(:)) - i, 'Color', colmat(peakChannel2(i),:));
+%             for chan = 1:size(data.LFP, 2)
+%                 r = triu(corr(permute(snippets(:,:,chan), [2 1])));
+%                 n = numel(cluster(clus).spikes);
+%                 corscore(chan) = sum(sum(triu(r)))./(n*(n-1)/2);
+%             end
+%             corscore
+            msnip(i,:,:) = squeeze(mean(snippets, 1));
+            plot(ax,((1:size(data.LFP, 2)) + repmat((-25:25)', 1,size(data.LFP, 2))./60), squeeze(msnip(i,:,:))./range(msnip(:)) - i, 'k');
+            plot(ax,(cluster(clus).peakChannel2(1) + (-25:25)./60), ...
+            msnip(i,:,cluster(clus).peakChannel2(1))./range(msnip(:)) - i, 'Color', colmat(peakChannel2(i),:));
         end
         hold(ax, 'off')
         set(ax, 'YTick', -numel(cluster):-1);
@@ -175,39 +182,39 @@ function synuiplotting(app)
             ax = app.Clust2Axes; cla(app.Clust2Axes, 'reset');
         end
         hold(ax, 'on');
-        nrows = ceil(sqrt(numel(cluster)));
-            for i = 1:numel(cluster)
-                j = i-1;
-                snippets = NaN(max([1 numel(cluster(channelsortorder(i)).spikes)]), 51);
-                for spike = 1:numel(cluster(channelsortorder(i)).spikes)
-                    spikewin = round(cluster(channelsortorder(i)).spikes(spike) * data.fs) + (1:51);
-                    snippets(spike,:) = lfptemp(spikewin, peakChannel2(i));
-                end
-                xoff = floor(j/nrows);
-                yoff = nrows - mod(j, nrows);
-                if numel(cluster(channelsortorder(i)).spikes) > 20
-                    snipdens = NaN(60, 51);
-                    yrange = max(max(abs(snippets)));
-                    binvec = linspace(-yrange, yrange, 60);
-                    for samp = 1:51
-                        snipdens(:,samp) = hist(snippets(:,samp), binvec);
-                    end
-                    imagesc(ax, xoff + [0 1], yoff + [-1 0], 1-snipdens./max(snipdens(:)))
-                    colormap(ax, gray)
-                else
-                    yrange = max(max(abs(snippets)));
-                    plot(ax, xoff + (1:size(snippets, 2))./size(snippets, 2), yoff -.5 + snippets./yrange./2, 'k')
-                end
-
-                    plot(ax, xoff + (1:size(msnip, 2))./size(msnip, 2), yoff -.5 + msnip(i,:,peakChannel2(i))./yrange./2, 'r:')
-                    text(ax, xoff, yoff, num2str(channelsortorder(i)));
+        nrows = ceil(sqrt(numel(data.chanlist)));
+        for i = 1:numel(data.chanlist)
+            j = i-1;
+            clus = channelsortorder(data.chanlist(i));
+            snippets = NaN(max([1 numel(cluster(clus).spikes)]), 51);
+            for spike = 1:numel(cluster(clus).spikes)
+                spikewin = round(cluster(clus).spikes(spike) * data.fs) + (1:51);
+                snippets(spike,:) = lfptemp(spikewin, peakChannel2(i));
             end
+            xoff = floor(j/nrows);
+            yoff = nrows - mod(j, nrows);
+            if numel(cluster(clus).spikes) > 20
+                snipdens = NaN(60, 51);
+                yrange = max(max(abs(snippets)));
+                binvec = linspace(-yrange, yrange, 60);
+                for samp = 1:51
+                    snipdens(:,samp) = hist(snippets(:,samp), binvec);
+                end
+                imagesc(ax, xoff + [0 1], yoff + [-1 0], 1-snipdens./max(snipdens(:)))
+                colormap(ax, gray)
+            else
+                yrange = max(max(abs(snippets)));
+                plot(ax, xoff + (1:size(snippets, 2))./size(snippets, 2), yoff -.5 + snippets./yrange./2, 'k')
+            end
+
+                plot(ax, xoff + (1:size(msnip, 2))./size(msnip, 2), yoff -.5 + msnip(i,:,peakChannel2(i))./yrange./2, 'r:')
+                text(ax, xoff, yoff, num2str(clus));
+        end
         axis(ax, [0 nrows 0 nrows])
         hold(ax, 'off');
         set(ax, 'YTick', []); set(ax, 'XTick', []);
     end %clustcheck
     app.data = data;
-
     app.DialogueLabel.Text = 'Ready';
     app.data.psth1table = psthdata.psth1table;
     app.data.psth2table = psthdata.psth2table;
