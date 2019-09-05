@@ -152,18 +152,21 @@ function out = psthlfpplots(app, data)
                 ADmaxcontdur(chani, 1) = 0;
                 ADonset(chani,1) = NaN;
                 ADoffset(chani,1) = NaN;
-                ADmaxcontspikecount(chani, 1) = 0;
+                AUC(chani,1)=0;
+                ADaverate(chani, 1) = 0;
             else
                 [maxcontbin, ADmaxind] = max(d-u);
                 ADmaxcontdur(chani, 1) = maxcontbin .*psthwindow;
                 ADonset(chani,1) = (u(ADmaxind)-.5).*psthwindow;
                 ADoffset(chani,1) = (d(ADmaxind)-.5).*psthwindow;
-                ADmaxcontspikecount(chani, 1) = sum(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani) - baseline(chani)) .* psthwindow;
+                AUC(chani, 1) = sum(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani) - baseline(chani)) .* psthwindow;
+                ADaverate(chani, 1) = mean(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani));
             end
         end
         ADmaxcontdur(ADmaxcontdur<(3.*psthwindow)) = 0;
         ADonset(ADmaxcontdur<(3.*psthwindow)) = NaN;
         ADoffset(ADmaxcontdur<(3.*psthwindow)) = NaN;
+        AUC(ADmaxcontdur<(3.*psthwindow)) = 0;
         ADmaxcontspikecount(ADmaxcontdur<(3.*psthwindow)) = 0;
         ADndiff = NaN(numel(data.chanlist), 1);
         ADratio = NaN(numel(data.chanlist), 1);
@@ -348,6 +351,10 @@ function out = psthlfpplots(app, data)
             lfp(i).x = (1:cycleperiod)'./data.fs;
             lfpmeans = mean(lfpcycle, 3); 
             lfp(i).y = lfpmeans(:, realchanlist);
+            [a,b,c] =lfppeaks(lfp(i).y);
+            lfp(i).peaks = a.*1E3;
+            lfp(i).lats = b.*1E3./data.fs;
+            lfp(i).slopes = c.*data.fs;
             plot(lax(i), lfp(i).x,  lfp(i).y./range(reshape(lfp(i).y, numel(lfp(i).y), 1)) - realchanlist');
         end
 
@@ -387,6 +394,7 @@ function out = psthlfpplots(app, data)
 %threshold rates
     if numel(unique(data.lvls))> 1 || numel(unique(data.frqs))> 1
         out.statstable = table([]);
+        out.lfpstatstable = table([]);
     else
         out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', ...
             CI95(1,:)', LDSaverate, LDSspikecount, LDSduration, PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
@@ -397,21 +405,30 @@ function out = psthlfpplots(app, data)
         if isempty(VS2)
             out.statstable = addvars(out.statstable, ADdiff(1,:)', 100.*ADndiff(1,:)', ADratio(1,:)', ADz(1,:)', ...
                 ADdiff(2,:)', 100.*ADndiff(2,:)', ADratio(2,:)', ADz(2,:)', ...
-            baseline', ADtotaldur', ADtotalspikecount', ADmaxcontdur, ADonset, ADoffset, ADmaxcontspikecount, ...
+            baseline', ADtotaldur', ADtotalspikecount', ADmaxcontdur, ADonset, ADoffset, AUC, ADaverate, ...
             'NewVariableNames', {'ADDiff_PSTH_Hz', 'ADPercChange_PSTH_percent', 'ADRatio_PSTH', 'ADzscore_PSTH', ...
             'ADDiff_Total_Hz', 'ADPercChange_Total_percent', 'ADratio_Total', 'ADzscore_Total',  ...
             'ThreshHoldRate_Hz', 'ADDuration_Total_sec', 'ADSpikeCount_Total', ...
-            'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont'});
+            'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont', 'ADAveRate_Hz'});
+            out.lfpstatstable = [];
         else
             hasntmultiplespikes = find(sum(tempst(1).bincount>0) < 1.5 | sum(tempst(2).bincount>0) < 1.5);
             modgaindb = 10*log10(AC(2,:)'./AC(1,:)');
             modgaindb(hasntmultiplespikes) = NaN;
-
             out.statstable = addvars(out.statstable, halfmaxdur(:,1), halfmaxdur(:,2), VS2(:,1), VS2(:,2), ...
                 AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
                 100.*TCF(1,:)', 100.*TCF(2,:)', modgaindb, 100.*(TCF(2,:)' - TCF(1,:)'), ...
                 'NewVariableNames', {'Duration1_ms', 'Duration2_ms', 'VectorStrength1', 'VectorStrength2', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
                 'DCPower1', 'DCPower2', 'TemporalCodingFraction1', 'TemporalCodingFraction2', 'ModGain_dB', 'TCF_Diff'});
+            out.lfpstatstable = table(realchanlist, lfp(1).peaks(1,:)', lfp(1).peaks(2,:)', lfp(1).peaks(3,:)', ...
+                lfp(2).peaks(1,:)', lfp(2).peaks(2,:)', lfp(2).peaks(3,:)', lfp(1).lats(1,:)', ...
+                lfp(1).lats(2,:)', lfp(1).lats(3,:)', lfp(2).lats(1,:)',...
+                lfp(2).lats(2,:)', lfp(2).lats(3,:)', lfp(1).slopes(1,:)', ...
+                lfp(1).slopes(2,:)', lfp(2).slopes(1,:)', lfp(2).slopes(2,:)', 'VariableNames', ...
+                {'Channel', 'LFP1MinPeak_mV', 'LFP1MaxPeak1_mV', 'LFP1MaxPeak2_mV', 'LFP2MinPeak_mV', 'LFP2MaxPeak1_mV', ...
+                'LFP2MaxPeak2_mV', 'LFP1MinLat_ms', 'LFP1MaxLat1_ms', 'LFP1MaxLat2_ms', 'LFP2MinLat_ms', 'LFP2MaxLat1_ms', ...
+                'LFP2MaxLat2_ms', 'LFP1FallSlope_mVpms', 'LFP1RiseSlope_mVpms', 'LFP2FallSlope_mVpms', 'LFP2RiseSlope_mVpms'});
+
             rat1 = squeeze(p(2,:,:)./p(1,:,:));
             rat2 = squeeze(p(2,1,:)./p(1,1,:));
             pchange = 20*log10(rat1')';
@@ -427,7 +444,6 @@ function out = psthlfpplots(app, data)
             title('Power Change post/pre-LDS (dB)')
             xlabel('Frequency (Hz)')
         end
-        
         
         
         if app.ClustsCheck.Value

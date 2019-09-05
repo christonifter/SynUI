@@ -220,5 +220,6 @@ function synuiplotting(app)
     app.data.psth2table = psthdata.psth2table;
     app.data.lfp1table = psthdata.lfp1table;
     app.data.lfp2table = psthdata.lfp2table;
+    app.data.lfpstatstable = psthdata.lfpstatstable;
     app.data.statstable = psthdata.statstable;
     app.data.ftctable = ftctable;

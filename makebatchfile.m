@@ -1,4 +1,4 @@
-% tankpath = uigetdir('D:\Synapse\Tanks');
+tankpath = uigetdir('D:\Synapse\Tanks');
 clustpath = 'D:\Spikes\';
 outpath = 'D:\ExperimentData\';
 batchpath = 'D:\Batches\';
@@ -16,4 +16,4 @@ for i = 3:numel(y)
     end
 end
 
-xlswrite([batchpath sub], [tanklist clusterlist outlist]);
+xlswrite([batchpath sub  '.xlsx'], [tanklist clusterlist outlist]);
