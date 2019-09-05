@@ -153,7 +153,7 @@ while loopcon
         if (numel(unique(lvls)) == 1) && (numel(unique(frqs))>1)
             trials = reshape(trials, 1, numel(trials));
             synftc(stimspets, spetfreq, analwin, channels, trials, chanlist, frqs, app.FTCAxes)
-            set(app.FTCAxes,'XTickLabel', sort(unique(frqs))./1000)
+            set(app.FTCAxes,'XTickLabel', round(sort(unique(frqs))./100)./10)
             xlabel(app.FTCAxes, 'Frequency (kHz)')
             title(app.FTCAxes, 'Iso Intensity Function')
         end
@@ -167,7 +167,7 @@ while loopcon
         if (numel(unique(lvls))>1) && (numel(unique(frqs))>1)
 %             plottrials = min([numel(stimons) numel(frqs) numel(lvls)]);
 %             [spetfreq, spetlevel, stimspets, trials] = freqlevelspet(spets, stimons(1:plottrials), frqs(1:plottrials), lvls(1:plottrials));
-            multifra(stimspets, spetfreq, spetlevel, analwin, channels, trials, chanlist, frqs(1:plottrials), lvls(1:plottrials), app.FTCAxes)
+            multifra(stimspets, spetfreq, spetlevel, analwin, channels, trials, chanlist, frqs(1:plottrials), lvls(1:plottrials), app.FTCAxes);
         end
      end
 

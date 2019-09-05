@@ -25,7 +25,7 @@ cscale = [0 max(mfra(:))];
 imagesc(ax, flipud(mfra));
 colormap(ax,'jet')
 set(ax,'XTick', 1:numel(frqlist))
-set(ax,'XTickLabel', frqlist./1000)
+set(ax,'XTickLabel', round(frqlist./100)./10)
 set(ax,'YTick', 1:numel(lvllist))
 set(ax,'YTickLabel', lvllist(numel(lvllist):-1:1))
 ylabel(ax, 'Level (dBSPL)')
