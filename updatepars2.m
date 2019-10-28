@@ -99,8 +99,15 @@ function updatepars2(app)
     timevec4 = [reshape(timevec3 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3))];
     yval = repmat([0 1 1 0], 1, numel(timevec4)/4);
     plot(app.StimAxes, timevec4, yval, 'k-')
+        
     maxdur = max(timevec4);
-
+    if app.LastoffsetnsecButton.Value
+        maxdur = maxdur + app.ExpDurationEdit.Value;
+    end
+    if app.SecondsButton.Value
+        maxdur = app.ExpDurationEdit.Value;
+    end
+    xlim(app.StimAxes, [0 maxdur]);
     app.StimPanel.Visible = 1;
     app.ExpDurationRadio.Visible = 1;
      app.StimDurLabel.Text = datestr(seconds(maxdur), 'MM:SS');

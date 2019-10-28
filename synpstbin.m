@@ -35,10 +35,10 @@ function [pst, yrange2, averate2, stims] = synpstbin(app, data, i, spetfreq, tar
     PSTHlvls = spetlevel(PSTHsel);
     selection = ones(size(PSTHsubspets));
     if targetfreq >= 0
-        selection = selection .* (PSTHfrqs==targetfreq); 
+        selection = selection .* (round(PSTHfrqs)==round(targetfreq)); 
     end
     if targetlvl >= 0
-        selection = selection .* (PSTHlvls == targetlvl);
+        selection = selection .* (round(PSTHlvls) == round(targetlvl));
     end
     pst.PSTHspets = PSTHsubspets(find(selection));
     pst.PSTHchans = PSTHchans(find(selection));
