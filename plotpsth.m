@@ -50,7 +50,7 @@ function [yrange, baseline] = plotpsth(app, ax, pst, averate, yrange, chanlist, 
                 chanlist', 'r:');
             end
             hold(ax(i), 'off');
-            grid(ax(i), 'on'); 
+%             grid(ax(i), 'on'); 
             ylabel(ax(i), 'Channel');
 
         end

@@ -43,6 +43,7 @@ function out = psthlfpplots(app, data)
         else
             ax(1) = app.PSTH1Axes;
         end
+        clear pst yfreq averate
         for freqi = 1:numel(frqlist)
             [pst(freqi), yrange(freqi,:), averate(freqi,:), stims] = synpstbin(app, data, 1, spetfreq, frqlist(freqi), spetlevel, targetlevel);
         end
@@ -55,6 +56,7 @@ function out = psthlfpplots(app, data)
         else
             ax(2) = app.PSTH2Axes; 
         end
+        clear pst yfreq averate
         for lvli = 1:numel(lvllist)
             [pst(lvli), yrange(lvli, :), averate(lvli,:), stims] = synpstbin(app, data, 1, spetfreq, targetfreq, spetlevel, lvllist(lvli));
         end
@@ -62,10 +64,18 @@ function out = psthlfpplots(app, data)
         set(ax(2), 'XTick', (1:numel(pst)) - 1); set(ax(2), 'XTickLabel', compose('%d', lvllist)); xlabel(ax(2), 'Level');
     elseif isempty(data.evons) || app.PSTHCycleCheck.Value == 0 
 %No cycle averaging
-        for chan = 1:numel(data.chanlist)
-            LDSspikecount(chan,1) = sum(data.clusters==data.chanlist(chan) & data.spets>data.stimons(1) & ...
-                data.spets<data.stimoffs(1));
-            LDSduration(chan,1) = data.stimoffs(1)-data.stimons(1);
+        if app.ClustsCheck.Value
+            for chan = 1:numel(data.chanlist)
+                LDSspikecount(chan,1) = sum(data.clusters==data.chanlist(chan) & data.spets>data.stimons(1) & ...
+                    data.spets<data.stimoffs(1));
+                LDSduration(chan,1) = data.stimoffs(1)-data.stimons(1);
+            end
+        else
+            for chan = 1:numel(data.chanlist)
+                LDSspikecount(chan,1) = sum(data.channels==data.chanlist(chan) & data.spets>data.stimons(1) & ...
+                    data.spets<data.stimoffs(1));
+                LDSduration(chan,1) = data.stimoffs(1)-data.stimons(1);
+            end
         end
         LDSaverate = LDSspikecount./LDSduration;
 
@@ -146,8 +156,8 @@ function out = psthlfpplots(app, data)
             if threshpsth2(end, chani)
                 d = [d;size(threshpsth2, 1)];
             end
-            u = u((u-.5)<(30./psthwindow));
-            d = d((u-.5)<(30./psthwindow));
+            u2 = u((u-.5)<(30./psthwindow));
+            d2 = d((u-.5)<(30./psthwindow));
             if numel(d) < 1
                 ADmaxcontdur(chani, 1) = 0;
                 ADonset(chani,1) = NaN;
@@ -159,15 +169,37 @@ function out = psthlfpplots(app, data)
                 ADmaxcontdur(chani, 1) = maxcontbin .*psthwindow;
                 ADonset(chani,1) = (u(ADmaxind)-.5).*psthwindow;
                 ADoffset(chani,1) = (d(ADmaxind)-.5).*psthwindow;
-                AUC(chani, 1) = sum(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani) - baseline(chani)) .* psthwindow;
-                ADaverate(chani, 1) = mean(pst(2).bincount(u(ADmaxind):d(ADmaxind), chani));
+                AUC(chani, 1) = sum(pst(2).bincount(u(ADmaxind):(d(ADmaxind)-1), chani) - baseline(chani)) .* psthwindow;
+                ADaverate(chani, 1) = mean(pst(2).bincount(u(ADmaxind):(d(ADmaxind)-1), chani));
+            end
+            
+            if numel(d2) < 1
+                eADmaxcontdur(chani, 1) = 0;
+                eADonset(chani,1) = NaN;
+                eADoffset(chani,1) = NaN;
+                eAUC(chani,1)=0;
+                eADaverate(chani, 1) = 0;
+            else
+                [maxcontbin, ADmaxind] = max(d2-u2);
+                eADmaxcontdur(chani, 1) = maxcontbin .*psthwindow;
+                eADonset(chani,1) = (u2(ADmaxind)-.5).*psthwindow;
+                eADoffset(chani,1) = (d2(ADmaxind)-.5).*psthwindow;
+                eAUC(chani, 1) = sum(pst(2).bincount((u2(ADmaxind):d2(ADmaxind)-1), chani) - baseline(chani)) .* psthwindow;
+                eADaverate(chani, 1) = mean(pst(2).bincount((u2(ADmaxind):d2(ADmaxind)-1), chani));
             end
         end
         ADmaxcontdur(ADmaxcontdur<(3.*psthwindow)) = 0;
         ADonset(ADmaxcontdur<(3.*psthwindow)) = NaN;
         ADoffset(ADmaxcontdur<(3.*psthwindow)) = NaN;
         AUC(ADmaxcontdur<(3.*psthwindow)) = 0;
-        ADmaxcontspikecount(ADmaxcontdur<(3.*psthwindow)) = 0;
+        ADaverate(ADmaxcontdur<(3.*psthwindow)) = 0;
+
+        eADmaxcontdur(eADmaxcontdur<(3.*psthwindow)) = 0;
+        eADonset(eADmaxcontdur<(3.*psthwindow)) = NaN;
+        eADoffset(eADmaxcontdur<(3.*psthwindow)) = NaN;
+        eAUC(eADmaxcontdur<(3.*psthwindow)) = 0;
+        eADaverate(eADmaxcontdur<(3.*psthwindow)) = 0;
+        
         ADndiff = NaN(numel(data.chanlist), 1);
         ADratio = NaN(numel(data.chanlist), 1);
         ADdiff = NaN(numel(data.chanlist), 1);
@@ -226,10 +258,18 @@ function out = psthlfpplots(app, data)
 
         binvec = 0:psthwindow:period;
         p = NaN(2,4096, numel(data.chanlist));
-        for chan = 1:numel(data.chanlist)
-            LDSspikecount(chan,1) = sum(data.clusters==data.chanlist(chan) & data.spets>data.stimons(1) & ...
-                data.spets<data.stimoffs(1));
-            LDSduration(chan,1) = data.stimoffs(1)-data.stimons(1);
+        if app.ClustsCheck.Value
+            for chan = 1:numel(data.chanlist)
+                LDSspikecount(chan,1) = sum(data.clusters==data.chanlist(chan) & data.spets>data.stimons(1) & ...
+                    data.spets<data.stimoffs(1));
+                LDSduration(chan,1) = data.stimoffs(1)-data.stimons(1);
+            end
+        else
+            for chan = 1:numel(data.chanlist)
+                LDSspikecount(chan,1) = sum(data.channels==data.chanlist(chan) & data.spets>data.stimons(1) & ...
+                    data.spets<data.stimoffs(1));
+                LDSduration(chan,1) = data.stimoffs(1)-data.stimons(1);
+            end
         end
         LDSaverate = LDSspikecount./LDSduration;
 
@@ -314,6 +354,7 @@ function out = psthlfpplots(app, data)
                 axesfield = ['PSTH' num2str(i) 'Axes']; ax(i) = app.(axesfield);
             end
             cla(ax(i), 'reset');
+            xlabel(ax(i), 'Time (ms)')
             averate(i,:) = averate2;
         end
         [~, MFi] = min(abs(f - 1/period));
@@ -321,9 +362,10 @@ function out = psthlfpplots(app, data)
         DC = squeeze(p(:, 1, :));
         TCF = AC./DC;
 
-        yrange = plotpsth(app, ax, pst, averate, yrange3, data.chanlist, [0 stimdur; 0 stimdur], 1);
+        yrange = plotpsth(app, ax, pst, averate, yrange3, data.chanlist, [0 stimdur; 0 stimdur], 1E-3);
+
         for i = 1:2
-            axis(ax(i), [0 period -max(data.chanlist) 1-min(data.chanlist)]);
+            axis(ax(i), [0 period.*1E3 -max(data.chanlist) 1-min(data.chanlist)]);
     %LFP
             reffield = ['PSTH' num2str(i) 'RefDrop']; startfield = ['PSTH' num2str(i) 'StartEdit']; endfield = ['PSTH' num2str(i) 'EndEdit'];
             if app.LFPPopupCheck.Value
@@ -348,7 +390,7 @@ function out = psthlfpplots(app, data)
                 endsamp = cycletsamp(cycle)+cycleperiod;
                 lfpcycle(:,:,cycle) = LFP(startsamp:endsamp,:);
             end
-            lfp(i).x = (1:cycleperiod)'./data.fs;
+            lfp(i).x = (1:cycleperiod)'.*1E3./data.fs;
             lfpmeans = mean(lfpcycle, 3); 
             lfp(i).y = lfpmeans(:, realchanlist);
             [a,b,c] =lfppeaks(lfp(i).y);
@@ -357,12 +399,12 @@ function out = psthlfpplots(app, data)
             lfp(i).slopes = c.*data.fs;
             rmswin = max([1 round(app.RMSonEdit.Value*data.fs/1E3)]):min([size(lfp(i).y, 1) round(app.RMSoffEdit.Value*data.fs/1E3)]);
             lfp(i).rms = rms(lfp(i).y(rmswin,:))'.*1E3;
-            rectangle(lax(i), 'Position', [app.RMSonEdit.Value/1E3 -max(realchanlist) app.RMSoffEdit.Value/1E3-app.RMSonEdit.Value/1E3  max(realchanlist)], 'FaceColor', .8*[.8 1 .8], 'EdgeColor', .8*[1 1 1]);
+            rectangle(lax(i), 'Position', [app.RMSonEdit.Value -max(realchanlist) app.RMSoffEdit.Value-app.RMSonEdit.Value  max(realchanlist)], 'FaceColor', .8*[.8 1 .8], 'EdgeColor', .8*[1 1 1]);
             hold(lax(i), 'on');
             plot(lax(i), lfp(i).x,  lfp(i).y./range(reshape(lfp(i).y, numel(lfp(i).y), 1)) - realchanlist');
-            hold(lax(i), 'off');            
+            hold(lax(i), 'off');    
+            xlabel(lax(i), 'Time (ms)')
         end
-
     end %if PSTH condition
     if app.ClustsCheck.Value
         for i = 1:numel(ax)
@@ -410,10 +452,12 @@ function out = psthlfpplots(app, data)
             out.statstable = addvars(out.statstable, ADdiff(1,:)', 100.*ADndiff(1,:)', ADratio(1,:)', ADz(1,:)', ...
                 ADdiff(2,:)', 100.*ADndiff(2,:)', ADratio(2,:)', ADz(2,:)', ...
             baseline', ADtotaldur', ADtotalspikecount', ADmaxcontdur, ADonset, ADoffset, AUC, ADaverate, ...
+            eADmaxcontdur, eADonset, eADoffset, eAUC, eADaverate, ...
             'NewVariableNames', {'ADDiff_PSTH_Hz', 'ADPercChange_PSTH_percent', 'ADRatio_PSTH', 'ADzscore_PSTH', ...
             'ADDiff_Total_Hz', 'ADPercChange_Total_percent', 'ADratio_Total', 'ADzscore_Total',  ...
             'ThreshHoldRate_Hz', 'ADDuration_Total_sec', 'ADSpikeCount_Total', ...
-            'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont', 'ADAveRate_Hz'});
+            'ADDuration_cont_sec', 'ADOnset_cont_sec', 'ADOffset_cont_sec', 'ADSpikeCount_Cont', 'ADAveRate_Hz', ...
+            'EarlyADDur_sec', 'EarlyADOnset_sec', 'EarlyADOffset_sec', 'EarlySpikeCount', 'EarlyADAveRate_Hz'});
             out.lfpstatstable = [];
         else
             hasntmultiplespikes = find(sum(tempst(1).bincount>0) < 1.5 | sum(tempst(2).bincount>0) < 1.5);

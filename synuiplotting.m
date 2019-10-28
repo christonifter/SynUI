@@ -46,13 +46,13 @@ function synuiplotting(app)
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
         fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax);
-        fra(:,9,9) = fra(:,8,9);
+        fra(:,end,end) = fra(:,end-1,end);
         for chan = 1:size(fra,1)
             chanfra = squeeze(fra(chan,:,:));
             [BLi(chan, 1), BFi(chan, 1)] = ind2sub(size(chanfra), find(chanfra == max(chanfra(:)), 1));
             peakrate(chan,1) = max(chanfra(:));
         end
-        for freq = 1:size(fra, 2)
+        for freq = 1:size(fra, 3)
             ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), spontrates, spontsig);
         end
         hold(ax, 'on')
@@ -74,7 +74,7 @@ function synuiplotting(app)
                 'VariableNames', {'Channel', 'PeakRate_Hz', 'BestFreq_kHz', 'BestLevel_dB', 'CharFreq_kHz', 'Thresh_CF_dB', 'AllThresh'});
         end
         for i = 1:numel(frqlist)
-            threshnames{i} = ['Thresh_' num2str(frqlist(i)./1000), 'kHz_dB'];
+            threshnames{i} = ['Thresh_' num2str(round(frqlist(i)./1000)), 'kHz_dB'];
         end
         ftctable= splitvars(ftctable, 'AllThresh', 'NewVariableNames', threshnames);
     elseif numel(unique(data.frqs))>1 && numel(unique(data.lvls)) == 1 %ISO-I
@@ -170,7 +170,9 @@ function synuiplotting(app)
             plot(ax,((1:size(data.LFP, 2)) + repmat((-25:25)', 1,size(data.LFP, 2))./60), squeeze(msnip(i,:,:))./range(msnip(:)) - i, 'k');
             plot(ax,(cluster(clus).peakChannel2(1) + (-25:25)./60), ...
             msnip(i,:,cluster(clus).peakChannel2(1))./range(msnip(:)) - i, 'Color', colmat(peakChannel2(i),:));
+            waveforms(i,:) = squeeze(msnip(i,:,peakChannel2(i)));
         end
+        save('waveforms.mat', 'waveforms');
         hold(ax, 'off')
         set(ax, 'YTick', -numel(cluster):-1);
         set(ax, 'YTickLabel', flipud(channelsortorder));

@@ -1,0 +1,61 @@
+totalneurons = 4;
+x = [ones(2,1).*200; ones(2,1).*600];
+y = [(1:2).*400 (1:2).*400-100]';
+z = ones(4,1).*450;
+
+%%now they are 1000x1 vectors. put next to each other 
+neuron_positions = [x,y,z];
+electrode_z = [ones(32,1).*450];
+electrode_x = [ones(16,1).*250;ones(16,1).*650];
+electrode_y = repmat([0:100:1500]',2,1);
+electrode_matrix = [electrode_x, electrode_y, electrode_z];
+
+distance = NaN(32,totalneurons);
+for electrode = 1:32
+    for neuron = 1:totalneurons
+        position_difference = (neuron_positions(neuron,:)- electrode_matrix(electrode,:));
+        distance(electrode,neuron) = norm(position_difference,2);
+    end
+end
+amplitude = 100./distance;
+
+
+spike_train
+halfnoise = normrnd(0,.2, [size(amplitude, 1) size(spiketrain, 1)/2]);
+simtanks = amplitude * spiketrain' + [halfnoise; halfnoise];
+figure(13); plot(simtanks(:,1:(samplingrate*2))'-(1:32).*2, 'k')
+
+ops.fbinary = ['D:\Spikes\simIC\twentyneurons\mergedata-001-i16.dat'];
+fid = fopen(ops.fbinary, 'w');
+x = max(max(abs(simtanks)));
+fwrite(fid, int16((2^15)./x .* simtanks), 'int16');
+fclose(fid);
+rez = tanksort(ops, 'D:\Spikes\simIC\twentyneurons\');
+
+spikeTimes     = rez.st3(:,1);
+spikeClusters = rez.st3(:,2);
+peakChannel = rez.iNeighPC';
+peakChannel2 = NaN(1, numel(unique(spikeClusters)),32);
+
+% [sr,sc] = find(triu(rez.simScore,1)>0.9)
+%     spikeClusters2= spikeClusters
+% for i = 1:numel(sr)
+%     spikeCluster2(spikeClusters == sc) = sr;
+% end
+% 
+% 
+    clear cluster
+    for j = 1:max(spikeClusters)
+        clind = find(spikeClusters == j);
+        cluster(j).spikes = (spikeTimes(clind))./rez.ops.fs;
+        cluster(j).peakChannel = peakChannel(j,:);
+    end
+
+size(spikeTimes)
+max(spikeClusters)
+figure(14); subplot(2,1,1); imagesc(rez.U(:,:,1)); 
+xlabel('Cluster'); ylabel('Channel');colorbar;
+subplot(2,1,2); imagesc(triu(rez.simScore,1)); colormap(jet); colorbar;
+xlabel('Cluster'); ylabel('Cluster'); 
+figure(12);subplot(1,2,2); plot(rez.W(1:51,:,1)-(1:max(spikeClusters)))
+

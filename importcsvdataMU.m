@@ -1,27 +1,24 @@
 if ~exist('utbl', 'var')
-    spontfolders = dir('D:\ExperimentData\spontaneous\');
-    spontparams = dir('D:\ExperimentData\spontparams\');
-    LDSfolders = dir('D:\ExperimentData\LDSstats\');
-    LDSPSTHfolders = dir('D:\ExperimentData\LDSPSTH\');
+    spontfolders = dir('D:\ExperimentData\muspont\');
+    spontparams = dir('D:\ExperimentData\muparams\');
+    LDSPSTHfolders = dir('D:\ExperimentData\muLDSPSTH\');
     utbl = [];
     partbl = [];
-    LDSpeak = [];
     expseq = [];
     for i = 3:numel(spontfolders)
-        y = dir(['D:\ExperimentData\spontaneous\' spontfolders(i).name]);
-        z = dir(['D:\ExperimentData\spontparams\' spontparams(i).name]);
-        w = dir(['D:\ExperimentData\LDSstats\' LDSfolders(i).name]);
-        v = dir(['D:\ExperimentData\LDSPSTH\' LDSPSTHfolders(i).name]);
+        y = dir(['D:\ExperimentData\muspont\' spontfolders(i).name]);
+        z = dir(['D:\ExperimentData\muparams\' spontparams(i).name]);
+        v = dir(['D:\ExperimentData\muLDSPSTH\' LDSPSTHfolders(i).name]);
 
         yrn = str2double(spontfolders(i).name(1:2));
         subn = str2double(spontfolders(i).name(4:5));
         siten = str2double(spontfolders(i).name(8));
-
+        
         for j = 3:numel(y)
-            tbl = readtable(['D:\ExperimentData\spontaneous\' spontfolders(i).name '\' y(j).name]);
-            partblx = readtable(['D:\ExperimentData\spontparams\' spontparams(i).name '\' z(j).name]);
-            LDStbl = readtable(['D:\ExperimentData\LDSstats\' LDSfolders(i).name '\' w(j).name]);
-            psthtbl = readtable(['D:\ExperimentData\LDSPSTH\' LDSPSTHfolders(i).name '\' v(j).name]);
+            tbl = readtable(['D:\ExperimentData\muspont\' spontfolders(i).name '\' y(j).name]);
+            partblx = readtable(['D:\ExperimentData\muparams\' spontparams(i).name '\' z(j).name]);
+%             LDStbl = readtable(['D:\ExperimentData\LDSstats\' LDSfolders(i).name '\' w(j).name]);
+            psthtbl = readtable(['D:\ExperimentData\muLDSPSTH\' LDSPSTHfolders(i).name '\' v(j).name]);
             exporder = j-2;
             expyr = str2double(y(j).name((end-19):(end-18)));
             expmo = str2double(y(j).name((end-17):(end-16)));
@@ -29,34 +26,29 @@ if ~exist('utbl', 'var')
             exphr = str2double(y(j).name((end-12):(end-11)));
             expmin = str2double(y(j).name((end-10):(end-9)));
             exptime = datetime(expyr, expmo, expday, exphr, expmin, 0);
+            tbl.Channel = tbl.Channel + yrn*1E7 + subn *1E4 + siten * 1E3;
+            onsetrate = table2array(psthtbl(1,2:size(psthtbl,2)))';
             partblx = partblx(:, 1:11);
             partblx = addvars(partblx, exporder, exptime);
-            
-            onsetrate = table2array(psthtbl(1,2:size(psthtbl,2)))';
-            LDSpeak = [LDSpeak; LDStbl.MaxRate_PSTH2_Hz];
             partbl = [partbl; repmat(partblx, size(tbl, 1), 1)];
-            tbl.Cluster = tbl.Cluster + yrn*1E7 + subn *1E4 + siten * 1E3;
             tbl = addvars(tbl, onsetrate);
             utbl = [utbl; tbl];
         end
     end
     AD = (utbl.ADSpikeCount_Cont);
 %     logAD(~isfinite(logAD)) = NaN;
-
-    utbl = [utbl partbl table(LDSpeak) table(AD)];
-
+    
+    utbl = [utbl partbl table(AD)];
 end
-usoundtbl = utbl(utbl.onsetrate > poissinv(.99, utbl.AveRate_PSTH1_Hz*2.5)/2.5, :);
-includeclusts = unique(utbl.Cluster(utbl.ADSpikeCount_Cont > 0));
-ADtbl = utbl(ismember(utbl.Cluster, includeclusts), :);
-ADsoundtbl = ADtbl(ADtbl.onsetrate > poissinv(.99, ADtbl.AveRate_PSTH1_Hz*2.5)/2.5, :);
-
-umod = fitlm(ADsoundtbl, 'AD ~ LDSLevel')
-figure(1); plot(ADsoundtbl.LDSLevel, ADsoundtbl.AD, 'k.')
+ADtbl = utbl(utbl.ADSpikeCount_Cont> 0,:);
+nonADtbl = utbl(utbl.ADSpikeCount_Cont == 0,:);
+ADsoundtbl = ADtbl(ADtbl.onsetrate > poissinv(.99, ADtbl.AveRate_PSTH1_Hz*2.5)/2.5, :);    
+umod = fitlm(ADtbl, 'AD ~ LDSLevel')
+figure(1); plot(ADtbl.LDSLevel, ADtbl.AD, 'k.')
 hold on;
-plot(1:100, (table2array(umod.Coefficients(1,1)) + table2array(umod.Coefficients(2,1)).*(1:100)), 'r--') 
+plot(1:450, (table2array(umod.Coefficients(1,1)) + table2array(umod.Coefficients(2,1)).*(1:450)), 'r--') 
 hold off;
-xlim([45 100])
+xlim([0 100])
 box off;
 % set(gca, 'YTick', [1 10 100 1000]);
 % set(gca, 'YTickLabel', [1 10 100 1000]);
@@ -64,22 +56,24 @@ box off;
 xlabel('Sound Level (dB SPL)')
 ylabel('LSA spikes')
 
-umod = fitlm(ADsoundtbl, 'AD ~ LDSaverate')
-figure(2); plot(ADsoundtbl.LDSaverate, ADsoundtbl.AD, 'k.')
+umod = fitlm(ADtbl, 'AD ~ LDSspikecount')
+figure(2); plot(ADtbl.LDSspikecount, ADtbl.AD, 'k.')
 hold on;
-plot(1:100, (table2array(umod.Coefficients(1,1)) + table2array(umod.Coefficients(2,1)).*(1:100)), 'r--') 
+plot([1 4E4], (table2array(umod.Coefficients(1,1)) + table2array(umod.Coefficients(2,1)).*[1 4E4]), 'r--') 
 hold off;
 box off;
 % set(gca, 'YTick', [1 10 100 1000]);
 % set(gca, 'YTickLabel', [1 10 100 1000]);
 % set(gcf, 'Position', [100 100 300 300]);
-xlabel('Sound-evoked spike rate')
+xlabel('Sound-evoked spike count')
 ylabel('LSA spikes')
 
-[r, p] = corr(ADsoundtbl.LDSaverate, ADsoundtbl.AD, 'rows', 'complete')
-[r, p] = corr(ADsoundtbl.LDSLevel, ADsoundtbl.AD, 'rows', 'complete');
+[r, p] = corr(ADtbl.LDSaverate, ADtbl.AD, 'rows', 'complete')
+[r, p] = corr(ADtbl.LDSLevel, ADtbl.AD, 'rows', 'complete');
 
 
+
+ADsoundtbl = ADtbl(ADtbl.onsetrate > poissinv(.99, ADtbl.AveRate_PSTH1_Hz*2.5)/2.5, :);
 
 uclusters = sort(unique(ADsoundtbl.Cluster));
 [repcount, m] = hist(ADsoundtbl.Cluster, uclusters);
