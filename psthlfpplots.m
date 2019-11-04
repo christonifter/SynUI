@@ -302,6 +302,8 @@ function out = psthlfpplots(app, data)
             averate2 = NaN(numel(data.chanlist), 1);
             for chan = 1:numel(data.chanlist)
                 [bincount(:, chan), bintime(:, chan)] = hist(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)), binvec);
+                pst(i).analcount(chan, 1) = sum(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) > app.PSTHOnsetEdit.Value*1E-3 & ...
+                    pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) < app.PSTHOffsetEdit.Value*1E-3);
                 yrange2(chan) = max(bincount(:, chan));
                 averate2(chan) = sum(bincount(:,chan)) / (app.(endfield).Value-app.(startfield).Value);
                 clustspets = pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan));
@@ -415,6 +417,7 @@ function out = psthlfpplots(app, data)
 
     out.psth1table = table(pst(1).bintime(:,1), pst(1).bincount, 'VariableNames', {'BinTime', 'BinCount'});
     out.psth2table = table(pst(2).bintime(:,1), pst(2).bincount, 'VariableNames', {'BinTime', 'BinCount'});
+    out.psth3table = table([]);
     out.lfp1table = table(lfp(1).x, lfp(1).y, 'VariableNames', {'Time', 'LFPuV'});
     out.lfp2table = table(lfp(2).x, lfp(2).y, 'VariableNames', {'Time', 'LFPuV'});
 %find peak rate/latency   
@@ -449,7 +452,8 @@ function out = psthlfpplots(app, data)
             'MaxRate_PSTH2_Hz', 'MaxRateLatency_PSTH2_sec'});
         
         if isempty(VS2)
-            out.statstable = addvars(out.statstable, ADdiff(1,:)', 100.*ADndiff(1,:)', ADratio(1,:)', ADz(1,:)', ...
+            out.statstable = addvars(out.statstable, ...
+                ADdiff(1,:)', 100.*ADndiff(1,:)', ADratio(1,:)', ADz(1,:)', ...
                 ADdiff(2,:)', 100.*ADndiff(2,:)', ADratio(2,:)', ADz(2,:)', ...
             baseline', ADtotaldur', ADtotalspikecount', ADmaxcontdur, ADonset, ADoffset, AUC, ADaverate, ...
             eADmaxcontdur, eADonset, eADoffset, eAUC, eADaverate, ...
@@ -460,13 +464,14 @@ function out = psthlfpplots(app, data)
             'EarlyADDur_sec', 'EarlyADOnset_sec', 'EarlyADOffset_sec', 'EarlySpikeCount', 'EarlyADAveRate_Hz'});
             out.lfpstatstable = [];
         else
+            out.psth3table = table(pst(1).bintime(:,1), pst(2).bincount-pst(1).bincount, 'VariableNames', {'BinTime', 'BinCount'});
             hasntmultiplespikes = find(sum(tempst(1).bincount>0) < 1.5 | sum(tempst(2).bincount>0) < 1.5);
             modgaindb = 10*log10(AC(2,:)'./AC(1,:)');
             modgaindb(hasntmultiplespikes) = NaN;
-            out.statstable = addvars(out.statstable, halfmaxdur(:,1), halfmaxdur(:,2), VS2(:,1), VS2(:,2), ...
-                AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
+            out.statstable = addvars(out.statstable, pst(1).analcount, pst(2).analcount, halfmaxdur(:,1), halfmaxdur(:,2), ...
+                VS2(:,1), VS2(:,2), AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
                 100.*TCF(1,:)', 100.*TCF(2,:)', modgaindb, 100.*(TCF(2,:)' - TCF(1,:)'), ...
-                'NewVariableNames', {'Duration1_ms', 'Duration2_ms', 'VectorStrength1', 'VectorStrength2', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
+                'NewVariableNames', {'WindowCount_PSTH1', 'WindowCount_PSTH2', 'Duration1_ms', 'Duration2_ms', 'VectorStrength1', 'VectorStrength2', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
                 'DCPower1', 'DCPower2', 'TemporalCodingFraction1', 'TemporalCodingFraction2', 'ModGain_dB', 'TCF_Diff'});
             out.lfpstatstable = table(realchanlist, lfp(1).peaks(1,:)', lfp(1).peaks(2,:)', lfp(1).peaks(3,:)', ...
                 lfp(2).peaks(1,:)', lfp(2).peaks(2,:)', lfp(2).peaks(3,:)', lfp(1).lats(1,:)', ...
@@ -482,17 +487,17 @@ function out = psthlfpplots(app, data)
             rat1 = squeeze(p(2,:,:)./p(1,:,:));
             rat2 = squeeze(p(2,1,:)./p(1,1,:));
             pchange = 20*log10(rat1')';
-            figure(7)
-            subplot(3,1,1)
-            plot(f,squeeze(p(1,:,:)));
-            title('Spectral Power pre-LDS')
-            subplot(3,1,2)
-            plot(f,squeeze(p(2,:,:)));
-            title('Spectral Power post-LDS')
-            subplot(3,1,3)
-            plot(f,pchange);
-            title('Power Change post/pre-LDS (dB)')
-            xlabel('Frequency (Hz)')
+%             figure(7)
+%             subplot(3,1,1)
+%             plot(f,squeeze(p(1,:,:)));
+%             title('Spectral Power pre-LDS')
+%             subplot(3,1,2)
+%             plot(f,squeeze(p(2,:,:)));
+%             title('Spectral Power post-LDS')
+%             subplot(3,1,3)
+%             plot(f,pchange);
+%             title('Power Change post/pre-LDS (dB)')
+%             xlabel('Frequency (Hz)')
         end
         
         

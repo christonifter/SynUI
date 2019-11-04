@@ -220,6 +220,7 @@ function synuiplotting(app)
     app.DialogueLabel.Text = 'Ready';
     app.data.psth1table = psthdata.psth1table;
     app.data.psth2table = psthdata.psth2table;
+    app.data.psth3table = psthdata.psth3table;
     app.data.lfp1table = psthdata.lfp1table;
     app.data.lfp2table = psthdata.lfp2table;
     app.data.lfpstatstable = psthdata.lfpstatstable;
