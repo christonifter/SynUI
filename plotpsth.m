@@ -16,7 +16,9 @@ function [yrange, baseline] = plotpsth(app, ax, pst, averate, yrange, chanlist, 
             rectangle(ax(i), 'Position', [stims(i,1) -max(chanlist)  stims(i,2)./scalet max(chanlist)], 'FaceColor', .8*[1 1 1], 'EdgeColor', .8*[1 1 1]);
             hold(ax(i), 'on');
             rectangle(ax(i), 'Position', [app.PSTHOnsetEdit.Value -max(chanlist)  app.PSTHOffsetEdit.Value-app.PSTHOnsetEdit.Value max(chanlist)], 'FaceColor', .8*[1 1 .9], 'EdgeColor', .8*[1 1 .9]);
-            if ~strcmpi(app.PSTHbaseline.SelectedObject.Text, 'psth') || i ~= 1 || ~(app.PSTHCycleCheck.Value)
+            if ~app.PSTHButton.Value || i == 1 || ~app.PSTHCycleCheck.Value
+                plot(ax(i), pst(i).bintime./scalet, (pst(i).bincount./yrange(i,:))- chanlist', 'Color', [.4 .4 1], 'LineWidth', 1);
+            else
                 plot(ax(i), pst(i).bintime./scalet, (pst(i).bincount./yrange(i,:))- chanlist', 'r', 'LineWidth', 1);
             end
             plot(ax(i), pst(i).PSTHspets./scalet, -pst(i).PSTHchans, 'k.');
@@ -50,7 +52,7 @@ function [yrange, baseline] = plotpsth(app, ax, pst, averate, yrange, chanlist, 
                     plot(ax(i), pst(i).bintime./scalet, (pst(i).bincount - baseline)./yrange(i,:) - chanlist', 'Color', [0 0.6 0], 'LineWidth', 1);
                 end
             else
-                plot(ax(i), [pst(i).bintime(find(~isnan(pst(i).bintime), 1)) pst(i).bintime(end)], ([baseline; baseline]./yrange(i,:)) - ...
+                plot(ax(i), [pst(i).bintime(find(~isnan(pst(i).bintime), 1)) pst(i).bintime(end)]./scalet, [baseline; baseline]./yrange(i,:) - ...
                 chanlist', 'r:');
             end
             hold(ax(i), 'off');

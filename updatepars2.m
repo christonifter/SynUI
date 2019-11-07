@@ -55,6 +55,7 @@ function updatepars2(app)
     t1 = 0;
     t2 = 0;
     gap = 0;
+    gap2 = 0;
     for par = 1:numel(app.pars)
         paramname = ['Par' num2str(par) 'Label'];
         synvaluename = ['Param' num2str(par) 'Label'];
@@ -72,16 +73,26 @@ function updatepars2(app)
                 lotime = parval/1000;
             case 'StimNPulses'
                 ncyc = parval;
+            case 'TrainDurationMS'
+                t1 = parval/1000;
             case 'GateLoMS'
                 gap = parval/1000;
             case 'LDSISISec'
                 gap = parval;
+            case 'TrainGapMS'
+                gap = parval/1000;
+            case 'PostLDSGapMS'
+                gap2 = parval/1000;
+            case 'NumberofTrains'
+                nrepeats = parval;
             case 'GateNPulses'
                 nrepeats = parval;
             case 'LDSPreSEC' 
                 t1 = parval;
             case 'LDSDurSEC'
                 t2 = parval;
+            case 'LDSDurationMS'
+                t2 = parval/1000;
             case 'LDSNPulses'
                 nrepeats = parval;
         end
@@ -94,11 +105,20 @@ function updatepars2(app)
     stimoffs = stimons + hitime;
     timevec = reshape([stimons; stimoffs], 1, numel([stimons; stimoffs]));
     timevec2 = reshape([timevec; timevec], numel(timevec)*2, 1);
-    timevec3 = repmat([timevec2; t1; t1; t1+t2; t1+t2], 1, nrepeats);
+    timevec3 = repmat(timevec2, 1, nrepeats);
     cycleperiod = max(max(timevec3))+gap;
-    timevec4 = [reshape(timevec3 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3))];
+    LDSon = (t1+gap)*nrepeats;
+    LDSoff = LDSon+t2;
+    timevec3b = [reshape(timevec3 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3)), LDSon, LDSon, LDSoff, LDSoff];
+    timevec4 = [timevec3b, LDSoff + reshape(timevec3 + gap2 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3))];
+    
+%     timevec3 = repmat([timevec2; t1; t1; t1+t2; t1+t2], 1, nrepeats);
+%     cycleperiod = max(max(timevec3))+gap;
+%     timevec4 = [reshape(timevec3 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3))];
     yval = repmat([0 1 1 0], 1, numel(timevec4)/4);
+
     plot(app.StimAxes, timevec4, yval, 'k-')
+    
         
     maxdur = max(timevec4);
     if app.LastoffsetnsecButton.Value

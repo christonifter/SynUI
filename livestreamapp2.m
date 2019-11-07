@@ -113,7 +113,7 @@ while loopcon
         x = app.StimDurLabel.Text;
         y = datestr(seconds(0), 'MM:SS');
         stimdur = seconds(datetime(x, 'InputFormat', 'mm:ss')-datetime(y, 'InputFormat', 'mm:ss'));
-        endtime = stimdur + app.ExpDurationEdit.Value;
+        endtime = stimdur;
         endtext = ['(' datestr(seconds(endtime-currtime(end)),'MM:SS') ' remaining) '];
     end
     if app.SecondsButton.Value

@@ -256,7 +256,7 @@ function out = psthlfpplots(app, data)
             psthwindow = period;
         end
 
-        binvec = 0:psthwindow:period;
+        binvec = 0:psthwindow:(period+psthwindow);
         p = NaN(2,4096, numel(data.chanlist));
         if app.ClustsCheck.Value
             for chan = 1:numel(data.chanlist)
@@ -296,12 +296,14 @@ function out = psthlfpplots(app, data)
             pst(i).PSTHchans = selchannels(PSTHsel); 
             pst(i).PSTHspets = PSTHspets(PSTHsel);
             
-            bincount = NaN(length(binvec), numel(data.chanlist));
-            bintime = NaN(length(binvec), numel(data.chanlist));
+            bincount = NaN(length(binvec)-1, numel(data.chanlist));
+            bintime = NaN(length(binvec)-1, numel(data.chanlist));
             yrange2 = NaN(numel(data.chanlist), 1);
             averate2 = NaN(numel(data.chanlist), 1);
             for chan = 1:numel(data.chanlist)
-                [bincount(:, chan), bintime(:, chan)] = hist(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)), binvec);
+                [y, x] = hist(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)), binvec);
+                bincount(:, chan) = y(1:(end-1));
+                bintime(:,chan) = x(1:(end-1));
                 pst(i).analcount(chan, 1) = sum(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) > app.PSTHOnsetEdit.Value*1E-3 & ...
                     pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) < app.PSTHOffsetEdit.Value*1E-3);
                 yrange2(chan) = max(bincount(:, chan));
