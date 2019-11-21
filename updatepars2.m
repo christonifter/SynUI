@@ -4,7 +4,7 @@ function updatepars2(app)
     if app.syn.getMode == 0
         app.syn.setMode(1);
     end
-    for i = 1:12
+    for i = 1:15
         synvaluename = ['Param' num2str(i) 'Label'];
         editname = ['Param' num2str(i) 'Edit'];
         paramname = ['Par' num2str(i) 'Label'];
@@ -12,9 +12,10 @@ function updatepars2(app)
         app.(paramname).Visible = 0;
         app.(editname).Visible = 0;
     end
-    app.CenterFreqEditFieldLabel.Visible = 0;
+    
+    %     app.CenterFreqEditFieldLabel.Visible = 0;
     app.CenterFreqEdit.Visible = 0;
-    app.BandwidthEditFieldLabel.Visible = 0;
+%     app.BandwidthEditFieldLabel.Visible = 0;
     app.BandwidthEdit.Visible = 0;
     app.TRMSEdit.Visible = 0;
 
@@ -36,11 +37,11 @@ function updatepars2(app)
            end
        end
     end
-    if sum(ismember(app.pars, 'HPCF'))
+    if sum(ismember(app.pars, 'LDSDurSec'))
         app.CenterFreqEdit.Visible = 1;
         app.BandwidthEdit.Visible = 1;
-        app.CenterFreqEditFieldLabel.Visible = 1;
-        app.BandwidthEditFieldLabel.Visible = 1;
+%         app.CenterFreqEditFieldLabel.Visible = 1;
+%         app.BandwidthEditFieldLabel.Visible = 1;
     end
     if sum(ismember(app.pars, 'ModDepth'))
         app.TRMSEdit.Visible = 1;
@@ -52,10 +53,12 @@ function updatepars2(app)
     lotime = 0;
     ncyc = 1;
     nrepeats = 1;
+    nldsrepeats = 1;
     t1 = 0;
     t2 = 0;
     gap = 0;
     gap2 = 0;
+    ldsgap = 0;
     for par = 1:numel(app.pars)
         paramname = ['Par' num2str(par) 'Label'];
         synvaluename = ['Param' num2str(par) 'Label'];
@@ -78,7 +81,7 @@ function updatepars2(app)
             case 'GateLoMS'
                 gap = parval/1000;
             case 'LDSISISec'
-                gap = parval;
+                ldsgap = parval;
             case 'TrainGapMS'
                 gap = parval/1000;
             case 'PostLDSGapMS'
@@ -94,13 +97,14 @@ function updatepars2(app)
             case 'LDSDurationMS'
                 t2 = parval/1000;
             case 'LDSNPulses'
-                nrepeats = parval;
+                nldsrepeats = parval;
         end
     end
     period = hitime + lotime;
     if t1 == 0
         t1 = ncyc*period;
     end
+    
     stimons = 0:period:(t1 - period);
     stimoffs = stimons + hitime;
     timevec = reshape([stimons; stimoffs], 1, numel([stimons; stimoffs]));
@@ -108,9 +112,9 @@ function updatepars2(app)
     timevec3 = repmat(timevec2, 1, nrepeats);
     cycleperiod = max(max(timevec3))+gap;
     LDSon = (t1+gap)*nrepeats;
-    LDSoff = LDSon+t2;
-    timevec3b = [reshape(timevec3 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3)), LDSon, LDSon, LDSoff, LDSoff];
-    timevec4 = [timevec3b, LDSoff + reshape(timevec3 + gap2 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3))];
+    phase2 = repmat([0 0 t2 t2], nldsrepeats, 1) + (0:(nldsrepeats-1))'.*(t2+ldsgap);
+    timevec3b = [reshape(timevec3 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3)), reshape(phase2', 1, numel(phase2))+LDSon];
+    timevec4 = [timevec3b, max(timevec3b) + reshape(timevec3 + gap2 + cycleperiod .* ((1:nrepeats)-1), 1, numel(timevec3))];
     
 %     timevec3 = repmat([timevec2; t1; t1; t1+t2; t1+t2], 1, nrepeats);
 %     cycleperiod = max(max(timevec3))+gap;
@@ -135,6 +139,7 @@ function updatepars2(app)
         mvarname = ['Param' num2str(par) 'Edit'];
         mvarname2 = ['Param' num2str(par) 'Label'];
         app.(mvarname).Value= str2double(app.(mvarname2).Text);
+        paramupdate(app, par)
      end
 
 end

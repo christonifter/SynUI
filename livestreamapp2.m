@@ -1,7 +1,7 @@
 %Streams data from synapse to MATLAB during preview and recording
 function livestreamapp2(app, mode) 
 app.DialogueLabel.Text = 'Beginning Experiment';
-updatepars2(app);
+updatepars3(app);
 chanlist = updatechans(app);
 spikevar = 'eSpk';
 wavevar = 'RAW1';
@@ -194,6 +194,32 @@ end
 app.DialogueLabel.Text = ['Data streaming ended. ' metext];
 
 if strcmpi(mode, 'Record')
+    try
+        stimpanelvalues = [app.ToneOnEdit.Value; app.ToneOffEdit.Value; app.TrainOnEdit.Value; ...
+            app.TrainOffEdit.Value; app.TrainRepeatsEdit.Value; app.ToneFreqEdit.Value; ...
+            app.ToneLevelEdit.Value; app.LDSPreEdit.Value; app.LDSDurEdit.Value; ...
+            app.LDSISIEdit.Value; app.LDSRepeatsEdit.Value; app.PostGapEdit.Value; ...
+            app.CenterFreqEdit.Value; app.BandwidthEdit.Value; app.TRMSEdit.Value; ...
+            app.ModDepthEdit.Value; app.ModExpEdit.Value; app.ModFreqEdit.Value];
+        stimpanelnames = [{'ToneOn'}; {'ToneOff'}; {'TrainOn'}; {'TrainOff'}; {'TrainRepeats'}; {'ToneFreq'}; ...
+            {'ToneLevel'}; {'LDSPre'}; {'LDSDur'}; {'LDSISI'}; {'LDSRepeats'}; {'PostGap'}; ...
+            {'CenterFreq'}; {'Bandwidth'}; {'TRMSEdit'}; {'ModDepth'}; {'ModExp'}; {'ModFreq'}];
+        stimpanelvis = [strcmp(app.ToneOnEdit.Visible, 'on'); strcmp(app.ToneOffEdit.Visible, 'on'); strcmp(app.TrainOnEdit.Visible, 'on'); ...
+            strcmp(app.TrainOffEdit.Visible, 'on'); strcmp(app.TrainRepeatsEdit.Visible, 'on'); strcmp(app.ToneFreqEdit.Visible, 'on'); ...
+            strcmp(app.ToneLevelEdit.Visible, 'on'); strcmp(app.LDSPreEdit.Visible, 'on'); strcmp(app.LDSDurEdit.Visible, 'on'); ...
+            strcmp(app.LDSISIEdit.Visible, 'on'); strcmp(app.LDSRepeatsEdit.Visible, 'on'); strcmp(app.PostGapEdit.Visible, 'on'); ...
+            strcmp(app.CenterFreqEdit.Visible, 'on'); strcmp(app.BandwidthEdit.Visible, 'on'); strcmp(app.TRMSEdit.Visible, 'on'); ...
+            strcmp(app.ModDepthEdit.Visible, 'on'); strcmp(app.ModExpEdit.Visible, 'on'); strcmp(app.ModFreqEdit.Visible, 'on')];
+        stimval = stimpanelvalues(find(stimpanelvis));
+        stimname = stimpanelnames(find(stimpanelvis));
+        stimtable = table(stimname, stimval);
+    catch ME
+        stimtable = table([]);
+        ME
+        disp('unable to save synui stimulus values');
+    end
+
+    
     [changesamp, ~]  = find(diff(parmat));
     changes = sort(unique(changesamp))+1;
     fulltable = array2table([currtime parmat], 'VariableNames', [{'Time'}; app.pars]);
@@ -210,7 +236,7 @@ if strcmpi(mode, 'Record')
     subind= find(folders);
      [~, i]=max(dates(subind));
      currfolder = [flist(subind(i)).folder '\' flist(subind(i)).name];
-     save([currfolder '\params.mat'], 'fulltable', 'changetable', 'threshlist')
+     save([currfolder '\params.mat'], 'fulltable', 'changetable', 'stimtable', 'threshlist')
      app.BlockEdit.Value = app.BlockEdit.Value + 1;
 end
 
