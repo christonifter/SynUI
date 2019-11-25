@@ -7,7 +7,7 @@ function rms2amp(app)
     LPfield = ['Param' num2str(LPi) 'Edit'];
     BW =  (app.(LPfield).Value - app.(HPfield).Value)./1000;
      scaling = 18/(BW+3.75)+0.6;
-     dbshift2 = 20*log10(scaling)
+     dbshift2 = 20*log10(scaling);
 %     dbshift2 = 12.5*BW;
      
     MEi = find(ismember(app.pars, 'ModExponent'));
