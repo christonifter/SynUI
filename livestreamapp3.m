@@ -210,6 +210,12 @@ if strcmpi(mode, 'Record')
             strcmp(app.LDSISIEdit.Visible, 'on'); strcmp(app.LDSRepeatsEdit.Visible, 'on'); strcmp(app.PostGapEdit.Visible, 'on'); ...
             strcmp(app.CenterFreqEdit.Visible, 'on'); strcmp(app.BandwidthEdit.Visible, 'on'); strcmp(app.TRMSEdit.Visible, 'on'); ...
             strcmp(app.ModDepthEdit.Visible, 'on'); strcmp(app.ModExpEdit.Visible, 'on'); strcmp(app.ModFreqEdit.Visible, 'on')];
+        if strcmp(app.TonePanel.Visible, 'off')
+            stimpanelvis(1:7) = 0;
+        end
+        if strcmp(app.LDSPanel.Visible, 'off')
+            stimpanelvis(8:end) = 0;
+        end
         stimval = stimpanelvalues(find(stimpanelvis));
         stimname = stimpanelnames(find(stimpanelvis));
         stimtable = table(stimname, stimval);
