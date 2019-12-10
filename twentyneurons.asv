@@ -34,11 +34,11 @@ for electrode = 1:32
         distance(electrode,neuron) = norm(position_difference,2);
     end
 end
-amplitude = 400./distance; %spike amplitude = 1 at distance = 100 um. noise amplitude = 1.
+amplitude = 100./distance; %spike amplitude = 1 at distance = 100 um. noise amplitude = 1.
 
 
 spike_train
-rng(1)
+rmg
 simtanks = [zeros(32, 26) amplitude * spiketrain' + normrnd(0,.2, [size(amplitude, 1) size(spiketrain, 1)]) zeros(32, 26)];
 figure(13); plot(0.5*simtanks(:,1:(samplingrate*10))'-(1:32), 'k')
 ops.fbinary = ['D:\Spikes\twentyneurons\run01\mergedata-001-i16.dat'];

@@ -1,10 +1,16 @@
 function [pst, yrange2, averate2, stims] = synpstbin(app, data, i, spetfreq, targetfreq, spetlevel, targetlvl)
+
     psthwindow = app.PSTHBinEdit.Value./1000; 
     reffield = ['PSTH' num2str(i) 'RefDrop'];
     startfield = ['PSTH' num2str(i) 'StartEdit'];
     endfield = ['PSTH' num2str(i) 'EndEdit'];
 % ref is an array with the times (sec) that will be used to align spike times to
 % the stimulus onset or offset
+if strcmpi(app.(reffield).Value, '0')
+    PSTHspets = data.spets;
+    PSTHspets(data.spets<app.(startfield).Value | data.spets>app.(endfield).Value) = NaN;
+    trial = ones(size(PSTHspets));
+else
     if strcmpi(app.(reffield).Value, 'onset')
         ref = data.stimons;
     else
@@ -23,7 +29,7 @@ function [pst, yrange2, averate2, stims] = synpstbin(app, data, i, spetfreq, tar
     spettable(spettable<0) = NaN;
     spettable(spettable>(app.(endfield).Value - app.(startfield).Value)) = NaN;
     [PSTHspets, trial] = min(spettable + app.(startfield).Value, [], 2, 'omitnan');
-
+end
 % We will save the subset of spikes that fall within the user-defined
 % windows, and each spike's channel, last stim freq, last stim
 % level, and last stim trial
@@ -58,6 +64,10 @@ function [pst, yrange2, averate2, stims] = synpstbin(app, data, i, spetfreq, tar
     pst.bincount = bincount./psthwindow;
     pst.bintime = bintime;
     stimdur = median(data.stimoffs - data.stimons);
-    stims = [-1.*strcmp(app.(reffield).Value, 'Offset').*stimdur, stimdur];
+    if strcmpi(app.(reffield).Value, '0')
+        stims = [data.stimons(1), data.stimoffs(1) - data.stimons(1)];
+    else
+        stims = [-1.*strcmp(app.(reffield).Value, 'Offset').*stimdur, stimdur];
+    end
     yrange2 = yrange./psthwindow;
     averate2 = averate;

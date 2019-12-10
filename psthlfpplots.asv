@@ -313,15 +313,12 @@ function out = psthlfpplots(app, data)
 %                 thresh(chan, i) = quantile(bincount(:, chan), .9);
                 pp = app.CLEdit.Value/100;
                 thresh(chan, i) = (1-pp)*(max(bincount(:,chan))) + pp*cbaseline;
+                thresh(chan, i)
                 [u, d] = findcross2(bincount(:,chan) - thresh(chan, i));
+                if numel(u)
                 firstafterbaseline = find(u > 7/app.PSTHBinEdit.Value, 1);
-                if numel(firstafterbaseline ) > 0 & numel(d) > 0
-                    onset(chan, i) = u(firstafterbaseline).*app.PSTHBinEdit.Value;
-                    offset(chan, i) = d(end).*app.PSTHBinEdit.Value;
-                else
-                    onset(chan, i) = NaN;
-                    offset(chan, i) = NaN;
-                end
+                onset(chan, i) = u(firstafterbaseline).*app.PSTHBinEdit.Value;
+                offset(chan, i) = d(end).*app.PSTHBinEdit.Value;
                 yrange2(chan) = max(bincount(:, chan));
                 averate2(chan) = sum(bincount(:,chan)) / (app.(endfield).Value-app.(startfield).Value);
                 clustspets = pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan));

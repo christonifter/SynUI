@@ -22,7 +22,7 @@ amplitude = 100./distance;
 
 spike_train
 halfnoise = normrnd(0,.2, [size(amplitude, 1) size(spiketrain, 1)/2]);
-simtanks = amplitude * spiketrain' + [halfnoise; halfnoise];
+simtanks = amplitude * spiketrain' + [halfnoise halfnoise];
 figure(13); plot(simtanks(:,1:(samplingrate*2))'-(1:32).*2, 'k')
 
 ops.fbinary = ['D:\Spikes\simIC\twentyneurons\mergedata-001-i16.dat'];
@@ -31,7 +31,7 @@ x = max(max(abs(simtanks)));
 fwrite(fid, int16((2^15)./x .* simtanks), 'int16');
 fclose(fid);
 rez = tanksort(ops, 'D:\Spikes\simIC\twentyneurons\');
-
+123
 spikeTimes     = rez.st3(:,1);
 spikeClusters = rez.st3(:,2);
 peakChannel = rez.iNeighPC';
@@ -44,13 +44,24 @@ peakChannel2 = NaN(1, numel(unique(spikeClusters)),32);
 % end
 % 
 % 
-    clear cluster
-    for j = 1:max(spikeClusters)
+channelnoise = std(simtanks, [], 2);
+clear cluster
+for j = 1:max(spikeClusters)
         clind = find(spikeClusters == j);
         cluster(j).spikes = (spikeTimes(clind))./rez.ops.fs;
         cluster(j).peakChannel = peakChannel(j,:);
+    snippets = NaN(numel(cluster(j).spikes), 51 ,32); %snippets of spikes from this experiment, all clusters
+    for spike = 1:numel(cluster(j).spikes)
+        spikewin = round(cluster(j).spikes(spike) * rez.ops.fs) + (1:51);
+        snippets(spike,:,:) = simtanks(:, spikewin)';
     end
+    msnip = squeeze(mean(snippets, 1));
+    cluster(j).msnip = msnip';
+end
 
+mergy;
+    
+    
 size(spikeTimes)
 max(spikeClusters)
 figure(14); subplot(2,1,1); imagesc(rez.U(:,:,1)); 
