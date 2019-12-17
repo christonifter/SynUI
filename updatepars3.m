@@ -182,6 +182,9 @@ function updatepars3(app)
     if ~isempty(regexp(app.ExperimentDrop.Value, 'FRAqo'))
         ncyc = 153;
     end
+    if ~isempty(regexpi(app.ExperimentDrop.Value, 'rln4db'))
+        nldsrepeats = nldsrepeats*21;
+    end
     period = hitime + lotime;
     if t1 == 0
         t1 = ncyc*period;

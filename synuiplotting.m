@@ -1,5 +1,9 @@
 function synuiplotting(app)
+    app.DialogueLabel.Text = 'Math...';
     data = app.data;
+    if isfield(data, 'sttraces')
+        sttracesplot(app)
+    else
     if app.ClustsCheck.Value
 %The cluster of each spike is stored in data.clusters and data.channels
 %data.clusters contains the original cluster code generated in Kilosort
@@ -22,7 +26,6 @@ function synuiplotting(app)
         data.chanlist = updatechans(app);
     end
 
-     app.DialogueLabel.Text = 'Math...';
     pause(.1)
     data.nchans = max(data.chanlist);
     [spetfreq, spetlevel, stimspets, trials] = freqlevelspet(data.spets, data.stimons, data.frqs, data.lvls);
@@ -216,6 +219,7 @@ function synuiplotting(app)
         hold(ax, 'off');
         set(ax, 'YTick', []); set(ax, 'XTick', []);
     end %clustcheck
+    end %not ra4 data
     app.data = data;
     app.DialogueLabel.Text = 'Ready';
     app.data.psth1table = psthdata.psth1table;

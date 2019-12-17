@@ -7,7 +7,26 @@ function out = readtank(path)
     stimvar3 = 'Stim';
     offvar = 'StOn';
     evvar = 'EvOn';
-
+    scalpvar = 'RA4W';
+ if isfield(data.snips, scalpvar)
+    chans = data.snips.(scalpvar).chan;
+    nchans = numel(unique(chans));
+    for chan = 1:nchans
+        chani = find(chans == chan);
+        sttrace(:,:,chan) = data.snips.(scalpvar).data(chani, :);
+    end
+    out.sttrace = sttrace;
+    out.fs = data.snips.(scalpvar).fs;
+    out.frqs = 0;
+    out.stimons = data.epocs.(offvar).onset(data.epocs.(offvar).data == 1);
+    out.stimoffs = data.epocs.(offvar).onset(data.epocs.(offvar).data == 0);
+    out.evons = [];
+    out.evoffs = [];
+    if isfield(data.epocs, evvar)
+        evons = data.epocs.(evvar).onset(data.epocs.(evvar).data == 1);
+        out.evoffs = data.epocs.(evvar).onset(data.epocs.(evvar).data == 0);
+        out.evons = evons(1:numel(out.evoffs));
+    end
 %           out.spets = data.snips.(spikevar).ts+.3; %FRAs collected before 1/7/2019 skipped the first stimulation
     out.spets = data.snips.(spikevar).ts;
     out.channels = double(data.snips.(spikevar).chan);
@@ -80,5 +99,5 @@ function out = readtank(path)
         
         
     end
-
+ end
 end

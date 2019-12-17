@@ -35,7 +35,6 @@ ftc = ftc .*scale;
 imagesc(ax, ftc);
 colormap(ax,'jet')
 
-
 % if exist('threshcrit', 'var')
 %     for chan = 1:nchans
 %          try
