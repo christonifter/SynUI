@@ -1,5 +1,5 @@
     totalneurons = 20;
-    x = [ones(10,1).*200; ones(10,1).*600];
+    x = [ones(10,1).*235; ones(10,1).*635];
     y = [(1:10).*160 (1:10).*160-100]';
     z = ones(20,1).*450;
 
@@ -34,7 +34,11 @@ for electrode = 1:32
         distance(electrode,neuron) = norm(position_difference,2);
     end
 end
+<<<<<<< Updated upstream
 amplitude = 100./distance;
+=======
+amplitude = 100./distance; %spike amplitude = 1 at distance = 100 um. noise amplitude = 1.
+>>>>>>> Stashed changes
 
 
 spike_train
@@ -46,9 +50,37 @@ fid = fopen(ops.fbinary, 'w');
 x = max(max(abs(simtanks)));
 fwrite(fid, int16((2^15)./x .* simtanks(:, 27:(end-26))), 'int16');
 fclose(fid);
+<<<<<<< Updated upstream
 pause
 rez = tanksort(ops, 'D:\Spikes\simIC\twentyneurons\');
 %%
+=======
+rez = tanksort(ops, 'D:\Spikes\twentyneurons\run01\');
+
+[~,sorti] = sort(rez.st3(:,1));
+spikeTimes = rez.st3(sorti,1);
+spikeClusters = rez.st3(sorti,2);
+spikeAmp = rez.st3(sorti,4);
+peakChannel = rez.iNeighPC';
+peakChannel2 = NaN(numel(unique(spikeClusters)),32);
+
+channelnoise = std(simtanks, [], 2);
+clear cluster
+for j = 1:max(spikeClusters)
+        clind = find(spikeClusters == j);
+        cluster(j).spikes = (spikeTimes(clind))./rez.ops.fs;
+        cluster(j).peakChannel = peakChannel(j,:);
+    snippets = NaN(numel(cluster(j).spikes), 51 ,32); %snippets of spikes from this experiment, all clusters
+    for spike = 1:numel(cluster(j).spikes)
+        spikewin = round(cluster(j).spikes(spike) * rez.ops.fs) + (1:51);
+        snippets(spike,:,:) = simtanks(:, spikewin)';
+    end
+    msnip = squeeze(mean(snippets, 1));
+    cluster(j).msnip = msnip';
+end
+
+mergy;
+>>>>>>> Stashed changes
 spikeTimes     = rez.st3(:,1);
 spikeClusters = rez.st3(:,2);
 peakChannel = rez.iNeighPC';
@@ -150,4 +182,14 @@ for j = 1:max(spikeClusters)
     cluster(j).peakChannel2 = squeeze(peakChannel2(j,:));
     cluster(j).msnip = msnip';
     cluster(j).snips = snippets;
+<<<<<<< Updated upstream
 end
+=======
+end
+save('D:\Spikes\twentyneurons\run01\rez.mat', 'rez', '-v7.3');
+save('D:\Spikes\twentyneurons\run01\cluster.mat', 'cluster', '-v7.3');
+
+figure();
+plot(1:numel(spiketimesall), spiketimesall, 'k'); hold on;
+plot(1:numel(spikeTimes), sort(spikeTimes), 'r'); hold off;
+>>>>>>> Stashed changes

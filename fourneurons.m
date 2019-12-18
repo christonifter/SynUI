@@ -17,7 +17,7 @@ for electrode = 1:32
         distance(electrode,neuron) = norm(position_difference,2);
     end
 end
-amplitude = 100./distance;
+amplitude = 400./distance;
 
 
 spike_train
@@ -31,12 +31,20 @@ x = max(max(abs(simtanks)));
 fwrite(fid, int16((2^15)./x .* simtanks), 'int16');
 fclose(fid);
 rez = tanksort(ops, 'D:\Spikes\simIC\twentyneurons\');
+<<<<<<< Updated upstream
 
 spikeTimes     = rez.st3(:,1);
 spikeClusters = rez.st3(:,2);
+=======
+[~,sorti] = sort(rez.st3(:,1));
+spikeTimes = rez.st3(sorti,1);
+spikeClusters = rez.st3(sorti,2);
+spikeAmp = rez.st3(sorti,4);
+>>>>>>> Stashed changes
 peakChannel = rez.iNeighPC';
-peakChannel2 = NaN(1, numel(unique(spikeClusters)),32);
+peakChannel2 = NaN(numel(unique(spikeClusters)),32);
 
+<<<<<<< Updated upstream
 % [sr,sc] = find(triu(rez.simScore,1)>0.9)
 %     spikeClusters2= spikeClusters
 % for i = 1:numel(sr)
@@ -46,11 +54,46 @@ peakChannel2 = NaN(1, numel(unique(spikeClusters)),32);
 % 
     clear cluster
     for j = 1:max(spikeClusters)
+=======
+channelnoise = std(simtanks, [], 2);
+clear cluster
+for j = 1:max(spikeClusters)
+>>>>>>> Stashed changes
         clind = find(spikeClusters == j);
         cluster(j).spikes = (spikeTimes(clind))./rez.ops.fs;
         cluster(j).peakChannel = peakChannel(j,:);
     end
 
+<<<<<<< Updated upstream
+=======
+% mergy;
+spikeTimes = rez.st3(:,1);
+spikeClusters = rez.st3(:,2);
+
+
+clear cluster
+for j = 1:max(spikeClusters)
+    clind = find(spikeClusters == j);
+    cluster(j).spikes = (spikeTimes(clind))./rez.ops.fs;
+    cluster(j).peakChannel = peakChannel(j,:);
+end
+for j = 1:max(spikeClusters)
+    snippets = NaN(numel(cluster(j).spikes), 51 ,32); %snippets of spikes from this experiment, all clusters
+    for spike = 1:numel(cluster(j).spikes)
+        spikewin = round(cluster(j).spikes(spike) * rez.ops.fs) + (1:51);
+        snippets(spike,:,:) = simtanks(:, spikewin)';
+    end
+    msnip = squeeze(mean(snippets, 1));
+    peakamp = range(msnip, 1);
+    [~, chord] = sort(peakamp, 'descend');
+    peakChannel2(j,:) = chord;
+    cluster(j).peakChannel2 = squeeze(peakChannel2(j,:));
+    cluster(j).msnip = msnip';
+    cluster(j).snips = snippets;
+end
+
+
+>>>>>>> Stashed changes
 size(spikeTimes)
 max(spikeClusters)
 figure(14); subplot(2,1,1); imagesc(rez.U(:,:,1)); 
