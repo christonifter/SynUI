@@ -125,7 +125,7 @@ while loopcon
         usechan = 1;
         startsamp = round(evons(1:end-1)*fs);
         endsamp = startsamp + round(.02*fs);
-        if size(rawdata, 1)>endsamp(end)
+        if size(rawdata, 1)<endsamp(end)
             startsamp = startsamp(1:(end-1));
             endsamp = endsamp(1:(end-1));
         end
