@@ -114,7 +114,7 @@ while loopcon
         stimoffs = [stimoffs; new.data.epocs.(offvar).onset(new.data.epocs.(offvar).data == 0)];
         nstims = numel(new.data.epocs.(offvar).onset(new.data.epocs.(offvar).data == 0));
     end
-    if isfield(new.data.snips, evvar)
+    if isfield(new.data.streams, scalpvar)
         if ~sum(isnan(new.data.epocs.(evvar).data))
             evons = [evons; new.data.epocs.(evvar).onset(new.data.epocs.(evvar).data == 1)];
             evoffs = [evoffs; new.data.epocs.(evvar).onset(new.data.epocs.(evvar).data == 0)];
@@ -123,7 +123,7 @@ while loopcon
     end
     if isfield(new.data.streams, scalpvar)
         usechan = 1;
-        startsamp = round(evons(1:end-1)*fs);
+        startsamp = round(evons.*fs);
         endsamp = startsamp + round(.02*fs);
         if size(rawdata, 1)<endsamp(end)
             startsamp = startsamp(1:(end-1));
