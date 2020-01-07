@@ -21,12 +21,9 @@ function out = readtank(path)
     end
     
 if isfield(data.streams, scalpvar)
-    out.raw = data.streams.(scalpvar).data';
+    out.raw = 1E6.*data.streams.(scalpvar).data'./20; %in uV, 20x gain on the RA4LI
     out.fs = data.streams.(scalpvar).fs;
 else
-
-    
-    
 %           out.spets = data.snips.(spikevar).ts+.3; %FRAs collected before 1/7/2019 skipped the first stimulation
     out.spets = data.snips.(spikevar).ts;
     out.channels = double(data.snips.(spikevar).chan);
