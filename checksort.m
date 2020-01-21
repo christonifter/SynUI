@@ -17,7 +17,7 @@ refractory = rez.est_contam_rate(:);
 uselist = find(snr > 2 & snrsnr > 5 & asym > 0.2);
 % uselist = 1:numel(clusterallexp);
 %  uselist = find(rez.good);
-% [~, uselist] = sort(asym, 'ascend','MissingPlacement','last');
+[~, uselist] = sort(snrsnr, 'descend','MissingPlacement','last');
 sttemplate = NaN(32,51,numel(uselist));
 
 for j = 1:numel(uselist)
@@ -25,7 +25,7 @@ for j = 1:numel(uselist)
 end
 
 nrows = min([10 numel(uselist)]);
-ncols = 6;
+ncols = 5;
 figure(1); clf; 
 subplot(1,ncols,1); plot(0,0); hold on;
 for j = 1:nrows
@@ -64,14 +64,14 @@ grid on;
 xlim([0 9E-3])
 ylim([1 nrows+1])
 
+% subplot(1,ncols,4)
+% plot(0,0);
+% hold on;
+% for j = 1:nrows
+%     plot(rez.acg([401:500, 502:600],uselist(j))./max(rez.acg(401:600,uselist(j)))+j)
+% end
+% ylim([1 nrows+1])
 subplot(1,ncols,4)
-plot(0,0);
-hold on;
-for j = 1:nrows
-    plot(rez.acg([401:500, 502:600],uselist(j))./max(rez.acg(401:600,uselist(j)))+j)
-end
-ylim([1 nrows+1])
-subplot(1,ncols,5)
 plot(0,0);
 hold on;
 for j = 1:nrows
@@ -82,7 +82,7 @@ end
 % end
 ylim([1 nrows+1])
 
-subplot(1,ncols,6)
+subplot(1,ncols,5)
 plot(0,0);
 hold on;
 for j = 1:nrows

@@ -29,6 +29,22 @@ if ~exist('utbl', 'var')
             tbl.Channel = tbl.Channel + yrn*1E7 + subn *1E4 + siten * 1E3;
             onsetrate = table2array(psthtbl(1,2:size(psthtbl,2)))';
             partblx = partblx(:, 1:11);
+            if ~isempty(cell2mat(regexp(partblx.Properties.VariableNames, 'LDSPreMS')))
+                Time = partblx.Time;
+                LDSPreSEC = partblx.LDSPreMS./1000;
+                LDSDurSEC = partblx.LDSDurationMS./1000;
+                LDSISISec = partblx.LDSISIMS./1000;
+                LDSNPulses = partblx.LDSRepeats;
+                LDSLevel = str2num(y(j).name((1:2) + regexpi(y(j).name, 'dB')-3));
+                HPCF = partblx.HPCF;
+                LPCF = partblx.LPCF;
+                ModDepth = partblx.ModDepth;
+                ModFrequency = partblx.ModFrequencyHz; 
+                ModExponent = partblx.ModExponent;
+                clear partblx
+                partblx = table(Time, LDSPreSEC, LDSDurSEC, LDSISISec, LDSNPulses, LDSLevel, HPCF, LPCF, ModDepth,...
+                    ModFrequency, ModExponent);
+            end
             partblx = addvars(partblx, exporder, exptime);
             partbl = [partbl; repmat(partblx, size(tbl, 1), 1)];
             tbl = addvars(tbl, onsetrate);
@@ -40,9 +56,10 @@ if ~exist('utbl', 'var')
     
     utbl = [utbl partbl table(AD)];
 end
-ADtbl = utbl(utbl.ADSpikeCount_Cont> 0,:);
-nonADtbl = utbl(utbl.ADSpikeCount_Cont == 0,:);
+ADtbl = utbl(utbl.EarlySpikeCount> 0,:);
+nonADtbl = utbl(utbl.EarlySpikeCount == 0,:);
 ADsoundtbl = ADtbl(ADtbl.onsetrate > poissinv(.99, ADtbl.AveRate_PSTH1_Hz*2.5)/2.5, :);    
+nonADsoundtbl = nonADtbl(nonADtbl.onsetrate > poissinv(.99, nonADtbl.AveRate_PSTH1_Hz*2.5)/2.5, :);
 umod = fitlm(ADtbl, 'AD ~ LDSLevel')
 figure(1); plot(ADtbl.LDSLevel, ADtbl.AD, 'k.')
 hold on;

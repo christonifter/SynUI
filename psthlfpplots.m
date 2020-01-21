@@ -274,13 +274,34 @@ function out = psthlfpplots(app, data)
         LDSaverate = LDSspikecount./LDSduration;
         VS = NaN(numel(data.chanlist), 1);
         jitter = NaN(numel(data.chanlist), 2);
+        sounddriven = NaN(numel(data.chanlist), 2);
+        peaklist = NaN(numel(data.chanlist), 10, 2);
 
         for i = 1:2
 
             [tempst(i), ~, ~, ~] = synpstbin(app, data, i, spetfreq, str2double(app.FrequencyDrop.Value), spetlevel, targetlevel);
             psthwindow = app.PSTHBinEdit.Value./1000; 
             binfs = 1/psthwindow;
-            [p(i,:,:), f] = pspectrum(tempst(i).bincount, binfs, 'FrequencyLimits', [0 100]);
+            [p(i,:,:), f] = pspectrum(tempst(i).bincount, binfs, 'FrequencyLimits', [0 200]);
+            pow = squeeze(p(i,:,:));
+            for chan = 1:numel(data.chanlist)
+                [~, peaki] = findcross2(diff(pow(:,chan))); %where on the frequency vector the maxima are
+                modpeaks = peaki(f(peaki)>0.5/period); %peaks above 1/2 modulation frequency
+                [~,peakorder] = sort(pow(modpeaks, chan), 'descend'); %rank index of peaks
+                sortedpeaki = modpeaks(peakorder(1:min([numel(peakorder), 10])));
+                sortedpeakf = round(f(sortedpeaki).*period*10)/10; %harmonic of the MF
+                sounddriven(chan, i) = (sum(ismember(1:4, sortedpeakf))>=3); %(sum(sortedpeakf(1:2)-(1:2)') == 0) & 
+                peaklist(chan, 1:min([numel(sortedpeakf), 10]), i) = sortedpeakf(1:min([numel(sortedpeakf), 10]));
+            end
+            if app.SpectraCheck.Value
+                 figure(1);
+                 subplot(1,2,i)
+                 npow = pow./max(pow);
+                 plot(f, npow - data.chanlist', 'k')
+                 hold on;
+                 plot(f,npow(:, find(sounddriven(:,i))) - data.chanlist(find(sounddriven(:,i)))', 'r')
+                 hold off;
+            end
             
             reffield = ['PSTH' num2str(i) 'RefDrop']; 
             startfield = ['PSTH' num2str(i) 'StartEdit']; 
@@ -378,19 +399,22 @@ function out = psthlfpplots(app, data)
             xlabel(ax(i), 'Time (ms)')
             averate(i,:) = averate2;
         end
+
         [~, MFi] = min(abs(f - 1/period));
         AC = squeeze(p(:, MFi, :));
         DC = squeeze(p(:, 1, :));
         TCF = AC./DC;
 
         yrange = plotpsth(app, ax, pst, averate, yrange3, data.chanlist, [0 stimdur; 0 stimdur], 1E-3);
-        for i = 1:2
-            hold(ax(i), 'on');
-            for chan = 1:numel(data.chanlist)
-                plot(ax(i), [onset(chan, i) offset(chan, i)], ...
-                    (-.1-data.chanlist(chan)) .* [1 1], 'Color', [0 0.6 0])
+        if app.ResponseDurationCheck.Value
+            for i = 1:2
+                hold(ax(i), 'on');
+                for chan = 1:numel(data.chanlist)
+                    plot(ax(i), [onset(chan, i) offset(chan, i)], ...
+                        (-.1-data.chanlist(chan)) .* [1 1], 'Color', [0 0.6 0])
+                end
+                hold(ax(i), 'off');
             end
-            hold(ax(i), 'off');
         end
 
         for i = 1:2
@@ -495,11 +519,11 @@ function out = psthlfpplots(app, data)
             hasntmultiplespikes = find(sum(tempst(1).bincount>0) < 1.5 | sum(tempst(2).bincount>0) < 1.5);
             modgaindb = 10*log10(AC(2,:)'./AC(1,:)');
             modgaindb(hasntmultiplespikes) = NaN;
-            out.statstable = addvars(out.statstable, pst(1).analcount, pst(2).analcount, halfmaxdur(:,1), halfmaxdur(:,2), ...
+            out.statstable = addvars(out.statstable, sounddriven(:,1), sounddriven(:,2), pst(1).analcount, pst(2).analcount, halfmaxdur(:,1), halfmaxdur(:,2), ...
                 onset(:,1), offset(:,1), offset(:,1)-onset(:,1), onset(:,2), offset(:,2), offset(:,2)-onset(:,2), ...
                 VS2(:,1), VS2(:,2), jitter(:,1).*1000, jitter(:,2).*1000, AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
                 100.*TCF(1,:)', 100.*TCF(2,:)', modgaindb, 100.*(TCF(2,:)' - TCF(1,:)'), ...
-                'NewVariableNames', {'WindowCount_PSTH1', 'WindowCount_PSTH2', 'Duration1_ms', 'Duration2_ms', ...
+                'NewVariableNames', {'SoundDriven_1', 'SoundDriven_2', 'WindowCount_PSTH1', 'WindowCount_PSTH2', 'Duration1_ms', 'Duration2_ms', ...
                 'RespOnset1_ms', 'RespOffset1_ms', 'RespDuration1_ms', 'RespOnset2_ms', 'RespOffset2_ms', 'RespDuration2_ms', ... 
                 'VectorStrength1', 'VectorStrength2', 'Jitter1_ms', 'Jitter2_ms', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
                 'DCPower1', 'DCPower2', 'TemporalCodingFraction1', 'TemporalCodingFraction2', 'ModGain_dB', 'TCF_Diff'});
