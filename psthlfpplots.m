@@ -283,7 +283,7 @@ function out = psthlfpplots(app, data)
             psthwindow = app.PSTHBinEdit.Value./1000; 
             binfs = 1/psthwindow;
             [p(i,:,:), f] = pspectrum(tempst(i).bincount, binfs, 'FrequencyLimits', [0 200]);
-            pow = squeeze(p(i,:,:));
+            pow = permute(p(i,:,:), [2, 3, 1]);
             for chan = 1:numel(data.chanlist)
                 [~, peaki] = findcross2(diff(pow(:,chan))); %where on the frequency vector the maxima are
                 modpeaks = peaki(f(peaki)>0.5/period); %peaks above 1/2 modulation frequency
@@ -298,9 +298,11 @@ function out = psthlfpplots(app, data)
                  subplot(1,2,i)
                  npow = pow./max(pow);
                  plot(f, npow - data.chanlist', 'k')
-                 hold on;
-                 plot(f,npow(:, find(sounddriven(:,i))) - data.chanlist(find(sounddriven(:,i)))', 'r')
-                 hold off;
+                 if sum(sounddriven(:,i))>0
+                     hold on;
+                     plot(f,npow(:, find(sounddriven(:,i))) - data.chanlist(find(sounddriven(:,i)))', 'r')
+                     hold off;
+                 end
             end
             
             reffield = ['PSTH' num2str(i) 'RefDrop']; 
