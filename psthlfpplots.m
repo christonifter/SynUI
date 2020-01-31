@@ -35,6 +35,11 @@ function out = psthlfpplots(app, data)
         
         [b,a] = butter(2, [fcl/fny fcu/fny]);
         LFP= squeeze(filter(b,a, raw));
+        if sum(sum(~isfinite(LFP))) > 0
+            [b,a] = butter(1, [fcl/fny fcu/fny]);
+            LFP= squeeze(filter(b,a, raw));
+        end
+
     if numel(unique(data.lvls))> 1 && numel(unique(data.frqs))> 1 
 %FRA
         if app.PSTHPopupCheck.Value
