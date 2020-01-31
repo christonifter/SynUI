@@ -123,7 +123,25 @@ function updatepars3(app)
         app.TRMSEdit.Visible = 0;
         app.TRMSLabel.Visible = 0;
     end
-        
+
+    if sum(ismember(app.pars, 'buffer2'))
+        app.DialogueLabel.Text = 'PC -> Audio -> RZ6 (~1 min)';
+        pause(.1)
+        bufferduration = 2000; %in ms, use an even number of seconds.
+        bufferlength = round(bufferduration*195.3125);
+        fid = fopen('C:\TDT\Synapse\DMR500ic120s30dB.f32');
+        fsignal = fread(fid, bufferlength, 'float');
+        nsignal = fsignal./max(fsignal);
+        t = (1:(10*192000))./192000;
+        nsignal = sin(2*pi*400*t);
+        app.syn.setParameterValue('xDMR_audio','BufferLengthMS',bufferduration); 
+        app.syn.setParameterValue('xDMR_audio','TrainRepeats',6); 
+        app.syn.setParameterValues('xDMR_audio','buffer1',nsignal); 
+        app.syn.setParameterValues('xDMR_audio','buffer2',nsignal);
+        app.DialogueLabel.Text = 'Loading';
+        pause(.1)
+    end
+
     
     % build stim preview    
     hitime = 0;
@@ -174,6 +192,9 @@ function updatepars3(app)
                 t2 = parval/1000;
             case 'LDSRepeats'
                 nldsrepeats = parval;
+            case 'BufferLengthMS'
+                hitime = parval/1000;
+                lotime = parval/1000;
         end
     end
     if ~isempty(regexp(app.ExperimentDrop.Value, 'FRAho'))
