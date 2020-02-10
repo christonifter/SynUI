@@ -81,6 +81,17 @@ function updatepars3(app)
             app.ToneLevelEdit.Visible = 0;
             app.ToneLevelLabel.Visible = 0;
         end
+        if sum(ismember(app.pars, 'Stim2FrequencyHz'))
+            app.Tone2FreqEdit.Visible = 1;
+            app.Tone2FreqLabel.Visible = 1;
+            app.Tone2LevelEdit.Visible = 1;
+            app.Tone2LevelLabel.Visible = 1;
+        else
+            app.Tone2FreqEdit.Visible = 0;
+            app.Tone2FreqLabel.Visible = 0;
+            app.Tone2LevelEdit.Visible = 0;
+            app.Tone2LevelLabel.Visible = 0;
+        end
         if sum(ismember(app.pars, 'TrainRepeats'))
             app.TrainRepeatsEdit.Visible = 1;
             app.TrainRepeatsLabel.Visible = 1;

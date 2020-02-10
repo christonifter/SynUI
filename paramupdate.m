@@ -30,6 +30,10 @@ function paramupdate(app, ind)
             app.ToneLevelEdit.Value = round(20*log10(app.(parfield).Value)*1E3)/1E3;
         case 'StimFrequencyHz'
             app.ToneFreqEdit.Value = round(app.(parfield).Value)/1000;
+        case 'Stim2Amplitude'
+            app.Tone2LevelEdit.Value = round(20*log10(app.(parfield).Value)*1E3)/1E3;
+        case 'Stim2FrequencyHz'
+            app.Tone2FreqEdit.Value = round(app.(parfield).Value)/1000;
         case 'LDSAmplitude'
 %             amp2rms(app)
         case 'ModFrequencyHz'
