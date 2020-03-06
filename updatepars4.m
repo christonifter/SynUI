@@ -13,7 +13,7 @@ function updatepars3(app)
         app.(editname).Visible = 0;
     end
     
-    app.StimulusPanel.Visible = 0;
+    app.TonePanel.Visible = 0;
     app.LDSPanel.Visible = 0;
     gizlist = app.syn.getGizmoNames();
     c = regexp(gizlist, '^x');
@@ -22,6 +22,24 @@ function updatepars3(app)
     app.pars = {};
     app.gizmos = {};
     
+%     app.ToneOnEdit.Value = 0;
+%     app.ToneOffEdit.Value = 0;
+%     app.TrainOnEdit.Value = 0;
+%     app.TrainOffEdit.Value = 0;
+%     app.TrainRepeatsEdit.Value = 0;
+%     app.ToneFreqEdit.Value = 0;
+%     app.ToneLevelEdit.Value = 0;
+%     app.LDSPreEdit.Value = 0;
+%     app.LDSDurEdit.Value = 0;
+%     app.LDSISIEdit.Value = 0;
+%     app.LDSRepeatsEdit.Value = 0;
+%     app.PostGapEdit.Value = 0;
+%     app.CenterFreqEdit.Value = 0;
+%     app.BandwidthEdit.Value = 0;
+%     app.TRMSEdit.Value = 0;
+%     app.ModDepthEdit.Value = 0;
+%     app.ModExpEdit.Value = 0;
+%     app.ModFreqEdit.Value = 0;
     
     %collect gizmo and param names
     for gizmo = 1:numel(pargizs)
@@ -37,17 +55,17 @@ function updatepars3(app)
     end
     %Hide things
     if sum([ismember(app.pars, 'StimHiMS'); ismember(app.pars, 'TrainDurationMS')])
-        app.StimulusPanel.Visible = 1;
+        app.TonePanel.Visible = 1;
         if sum(ismember(app.pars, 'StimHiMS'))
-            app.StimOnEdit.Visible = 1;
-            app.StimOnLabel.Visible = 1;
-            app.StimOffEdit.Visible = 1;
-            app.StimOffLabel.Visible = 1;
+            app.ToneOnEdit.Visible = 1;
+            app.ToneOnLabel.Visible = 1;
+            app.ToneOffEdit.Visible = 1;
+            app.ToneOffLabel.Visible = 1;
         else
-            app.StimOnEdit.Visible = 0;
-            app.StimOnLabel.Visible = 0;
-            app.StimOffEdit.Visible = 0;
-            app.StimOffLabel.Visible = 0;            
+            app.ToneOnEdit.Visible = 0;
+            app.ToneOnLabel.Visible = 0;
+            app.ToneOffEdit.Visible = 0;
+            app.ToneOffLabel.Visible = 0;            
         end
         if sum(ismember(app.pars, 'TrainDurationMS'))
             app.TrainOnEdit.Visible = 1;
@@ -61,36 +79,36 @@ function updatepars3(app)
             app.TrainOffLabel.Visible = 0;            
         end
         if sum(ismember(app.pars, 'StimFrequencyHz'))
-            app.StimFreqEdit.Visible = 1;
-            app.StimFreqLabel.Visible = 1;
-        elseif sum(ismember(app.pars, 'StimHPCF'))
-                app.StimFreqEdit.Visible = 1;
-                app.StimFreqLabel.Visible = 1;
-                app.StimBWEdit.Visible = 1;
-                app.StimBWLabel.Visible = 1;
+            app.ToneFreqEdit.Visible = 1;
+            app.ToneFreqLabel.Visible = 1;
+        elseif sum(ismember(app.pars, 'AMHPCF'))
+                app.ToneFreqEdit.Visible = 1;
+                app.ToneFreqLabel.Visible = 1;
+                app.ToneBWEdit.Visible = 1;
+                app.ToneBWLabel.Visible = 1;
         else
-            app.StimFreqEdit.Visible = 0;
-            app.StimFreqLabel.Visible = 0;
-            app.StimBWEdit.Visible = 0;
-            app.StimBWLabel.Visible = 0;
+            app.ToneFreqEdit.Visible = 0;
+            app.ToneFreqLabel.Visible = 0;
+            app.ToneBWEdit.Visible = 0;
+            app.ToneBWLabel.Visible = 0;
         end
         if sum(ismember(app.pars, 'StimAmplitude'))
-            app.StimLevelEdit.Visible = 1;
-            app.StimLevelLabel.Visible = 1;
+            app.ToneLevelEdit.Visible = 1;
+            app.ToneLevelLabel.Visible = 1;
         else
-            app.StimLevelEdit.Visible = 0;
-            app.StimLevelLabel.Visible = 0;
+            app.ToneLevelEdit.Visible = 0;
+            app.ToneLevelLabel.Visible = 0;
         end
         if sum(ismember(app.pars, 'Stim2FrequencyHz'))
-            app.Stim2FreqEdit.Visible = 1;
-            app.Stim2FreqLabel.Visible = 1;
-            app.Stim2LevelEdit.Visible = 1;
-            app.Stim2LevelLabel.Visible = 1;
+            app.Tone2FreqEdit.Visible = 1;
+            app.Tone2FreqLabel.Visible = 1;
+            app.Tone2LevelEdit.Visible = 1;
+            app.Tone2LevelLabel.Visible = 1;
         else
-            app.Stim2FreqEdit.Visible = 0;
-            app.Stim2FreqLabel.Visible = 0;
-            app.Stim2LevelEdit.Visible = 0;
-            app.Stim2LevelLabel.Visible = 0;
+            app.Tone2FreqEdit.Visible = 0;
+            app.Tone2FreqLabel.Visible = 0;
+            app.Tone2LevelEdit.Visible = 0;
+            app.Tone2LevelLabel.Visible = 0;
         end
         if sum(ismember(app.pars, 'TrainRepeats'))
             app.TrainRepeatsEdit.Visible = 1;
@@ -226,9 +244,13 @@ function updatepars3(app)
     stimoffs = stimons + hitime;
     timevec = reshape([stimons; stimoffs], 1, numel([stimons; stimoffs]));
     timevec2 = reshape([timevec; timevec], numel(timevec)*2, 1);
-    timevec2a = [0; 0; timevec2(3:(end-2), 1); t1; t1];
-    timevec3 = repmat(timevec2a, 1, nrepeats)+ cycleperiod .* ((1:nrepeats)-1);
-     
+    
+    trainons = (0:(nrepeats-1)).*cycleperiod;
+    trainoffs = trainons + t1;
+    
+    envelope = reshape([trainons; trainoffs], 1, numel([trainons; trainoffs]));
+    timevec3 = repmat(timevec2, 1, nrepeats)+ cycleperiod .* ((1:nrepeats)-1);
+    timevec3
     LDSon = (t1+gap)*nrepeats;
     phase1 = reshape(timevec3, 1, numel(timevec3));
     phase2 = repmat([0 0 t2 t2], nldsrepeats, 1) + (0:(nldsrepeats-1))'.*(t2+ldsgap);
