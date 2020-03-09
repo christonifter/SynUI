@@ -29,7 +29,7 @@ function paramupdate(app, ind)
         case 'LDSRepeats'
             app.LDSRepeatsEdit.Value = round(app.(parfield).Value);
         case 'PostLDSGapMS'
-            app.PostGapEdit.Value = round(app.(parfield).Value)/1000;
+            app.LDSPostGapEdit.Value = round(app.(parfield).Value)/1000;
         case 'StimAmplitude'
             app.StimLevelEdit.Value = round(20*log10(app.(parfield).Value)*1E3)/1E3;
         case 'StimFrequencyHz'
@@ -39,15 +39,16 @@ function paramupdate(app, ind)
         case 'Stim2FrequencyHz'
             app.Stim2FreqEdit.Value = round(app.(parfield).Value)/1000;
         case 'LDSAmplitude'
-            amp2rms(app)
+             app.LDSLevelEdit.Value = round(20*log10(app.(parfield).Value)*1E3)/1E3;
+            amp2rms2(app)
         case 'ModFrequencyHz'
-            app.ModFreqEdit.Value = app.(parfield).Value;
+            app.LDSModFreqEdit.Value = app.(parfield).Value;
         case 'HPCF'
-            app.CenterFreqEdit.Value = round(sqrt(app.(HPCFfield).Value * app.(LPCFfield).Value))/1E3;
-            app.BandwidthEdit.Value = round(log2(app.(LPCFfield).Value / app.(HPCFfield).Value)*1E3)/1E3;  
+            app.LDSCFreqEdit.Value = round(sqrt(app.(HPCFfield).Value * app.(LPCFfield).Value))/1E3;
+            app.LDSBWEdit.Value = round(log2(app.(LPCFfield).Value / app.(HPCFfield).Value)*1E3)/1E3;  
         case 'LPCF'
-            app.CenterFreqEdit.Value = round(sqrt(app.(HPCFfield).Value * app.(LPCFfield).Value))/1E3;
-            app.BandwidthEdit.Value = round(log2(app.(LPCFfield).Value / app.(HPCFfield).Value)*1E3)/1E3;  
+            app.LDSCFreqEdit.Value = round(sqrt(app.(HPCFfield).Value * app.(LPCFfield).Value))/1E3;
+            app.LDSBWEdit.Value = round(log2(app.(LPCFfield).Value / app.(HPCFfield).Value)*1E3)/1E3;  
         case 'StimHPCF'
             app.StimFreqEdit.Value = round(sqrt(app.(StimHPCFfield).Value * app.(StimLPCFfield).Value))/1E3;
             app.StimBWEdit.Value = round(log2(app.(StimLPCFfield).Value / app.(StimHPCFfield).Value)*1E3)/1E3;  
@@ -55,11 +56,11 @@ function paramupdate(app, ind)
             app.StimFreqEdit.Value = round(sqrt(app.(StimHPCFfield).Value * app.(StimLPCFfield).Value))/1E3;
             app.StimBWEdit.Value = round(log2(app.(StimLPCFfield).Value / app.(StimHPCFfield).Value)*1E3)/1E3;  
         case 'ModDepth'
-            app.ModDepthEdit.Value = app.(parfield).Value*100;
-            amp2rms(app)
+            app.LDSModDepthEdit.Value = app.(parfield).Value*100;
+%             amp2rms2(app)
         case 'ModExponent'
-            app.ModExpEdit.Value = app.(parfield).Value ;
-            amp2rms(app)
+            app.LDSModExpEdit.Value = app.(parfield).Value ;
+%             amp2rms2(app)
         case 'StimModFrequencyHz'
             app.StimModFreqEdit.Value = app.(parfield).Value;
     end

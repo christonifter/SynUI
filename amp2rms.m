@@ -10,5 +10,10 @@ function amp2rms(app)
         Ampfield = ['Param' num2str(Ampi) 'Edit'];
         app.TRMSEdit.Value = 20*log10(app.(Ampfield).Value) - dbshift(exp);
     end
+    if sum(ismember(app.pars, 'StimModFrequencyHz'))
+        EAmpi = find(ismember(app.pars, 'StimAmplitude'));
+        EAmpfield = ['Param' num2str(EAmpi) 'Edit'];
+        app.StimLevelEdit.Value = 20*log10(app.(StimAmpfield).Value) - dbshift(exp);
+    end
 
 end

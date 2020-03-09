@@ -63,6 +63,8 @@ function updatepars3(app)
         if sum(ismember(app.pars, 'StimFrequencyHz'))
             app.StimFreqEdit.Visible = 1;
             app.StimFreqLabel.Visible = 1;
+            app.StimBWEdit.Visible = 0;
+            app.StimBWLabel.Visible = 0;
         elseif sum(ismember(app.pars, 'StimHPCF'))
                 app.StimFreqEdit.Visible = 1;
                 app.StimFreqLabel.Visible = 1;
@@ -107,16 +109,16 @@ function updatepars3(app)
             app.LDSISIEdit.Visible = 1;
             app.LDSRepeatsEdit.Visible = 1;
             app.LDSRepeatsLabel.Visible = 1;
-            app.PostGapEdit.Visible = 0;
+            app.LDSPostGapEdit.Visible = 0;
             app.LDSISILabel.Visible = 1;
-            app.PostGapLabel.Visible = 0;
+            app.LDSPostGapLabel.Visible = 0;
         else
             app.LDSISIEdit.Visible = 0;
             app.LDSRepeatsEdit.Visible = 0;
             app.LDSRepeatsLabel.Visible = 0;
-            app.PostGapEdit.Visible = 1;
+            app.LDSPostGapEdit.Visible = 1;
             app.LDSISILabel.Visible = 0;
-            app.PostGapLabel.Visible = 1;
+            app.LDSPostGapLabel.Visible = 1;
         end
     end
     if sum(ismember(app.pars, 'LDSPreMS'))
@@ -128,11 +130,11 @@ function updatepars3(app)
     end        
 
     if sum(ismember(app.pars, 'LDSAmplitude'))
-        app.TRMSEdit.Visible = 1;
-        app.TRMSLabel.Visible = 1;
+        app.LDSLevelEdit.Visible = 1;
+        app.LDSLevelLabel.Visible = 1;
     else
-        app.TRMSEdit.Visible = 0;
-        app.TRMSLabel.Visible = 0;
+        app.LDSLevelEdit.Visible = 0;
+        app.LDSLevelLabel.Visible = 0;
     end
 
     if sum(ismember(app.pars, 'buffer2'))
@@ -258,7 +260,7 @@ function updatepars3(app)
         app.(mvarname).Value= str2double(app.(mvarname2).Text);
      end
      for par = 1:numel(app.pars)
-        paramupdate(app, par)
+        make_pars_userfriendly(app, par)
      end
 
 end

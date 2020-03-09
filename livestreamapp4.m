@@ -1,7 +1,7 @@
 %Streams data from synapse to MATLAB during preview and recording
 function livestreamapp4(app, mode) 
 app.DialogueLabel.Text = 'Beginning Experiment';
-updatepars3(app);
+readsynpars(app);
 chanlist = updatechans(app);
 spikevar = 'eSpk';
 wavevar = 'RAW1';
