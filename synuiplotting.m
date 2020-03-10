@@ -49,7 +49,6 @@ function synuiplotting(app)
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
         fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax);
-        fra(:,end,end) = fra(:,end-1,end);
         for chan = 1:size(fra,1)
             chanfra = squeeze(fra(chan,:,:));
             [BLi(chan, 1), BFi(chan, 1)] = ind2sub(size(chanfra), find(chanfra == max(chanfra(:)), 1));
@@ -230,3 +229,4 @@ function synuiplotting(app)
     app.data.lfpstatstable = psthdata.lfpstatstable;
     app.data.statstable = psthdata.statstable;
     app.data.ftctable = ftctable;
+    app.data.fra = fra;
