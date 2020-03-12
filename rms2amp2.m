@@ -38,7 +38,7 @@ function rms2amp(app)
              dbshift2 = 20*log10(scaling);
         
         app.(EAmpfield).Value = 10^((dbshift(2) + dbshift2 + app.StimLevelEdit.Value)/20);
-    else
+    elseif sum(ismember(app.pars, 'StimAmplitude'))
         app.(EAmpfield).Value = 10^(app.StimLevelEdit.Value/20);
     end
     

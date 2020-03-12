@@ -83,6 +83,13 @@ function updatepars3(app)
             app.StimLevelEdit.Visible = 0;
             app.StimLevelLabel.Visible = 0;
         end
+        if sum(ismember(app.pars, 'StimModFrequencyHz'))
+            app.StimModFreqEdit.Visible = 1;
+            app.StimModFreqLabel.Visible = 1;
+        else
+            app.StimModFreqEdit.Visible = 0;
+            app.StimModFreqLabel.Visible = 0;
+        end
         if sum(ismember(app.pars, 'Stim2FrequencyHz'))
             app.Stim2FreqEdit.Visible = 1;
             app.Stim2FreqLabel.Visible = 1;
