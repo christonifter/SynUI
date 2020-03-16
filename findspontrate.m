@@ -8,6 +8,8 @@ function spontrates = findspontrate(spets, stimons, channels, chanlist, analwin)
 %channels = channel (recording site or cluster) for each spike
 %analwin = time window relative to sound onset to collect spikes from.
 
+%out:
+%spontrate = spikes per channel (count from all spontaneous windows)
 
 analwins = (stimons(:) + analwin)';
 analwins = analwins(:);
@@ -15,6 +17,7 @@ if analwins(1)< 0
     analwins = analwins(3:end);
 end
 spikestimeindex = discretize(spets, analwins);
+
 spikeisinanalwin = mod(spikestimeindex,2) == 1;
 analchans = channels(spikeisinanalwin);
 totaltime = (analwin(2)-analwin(1))*numel(analwins)/2;

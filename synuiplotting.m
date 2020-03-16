@@ -46,6 +46,8 @@ function synuiplotting(app)
         spontsig = ((spontsig-spontrates)*2.5+1+spontrates)./totaltime;
         spontrates = spontrates./totaltime;
     end
+    labeledfra = [];
+    fratable = table([]);
     ftctable = table([]);
     if numel(unique(data.frqs))>1 && numel(unique(data.lvls)) > 1 %FRA
         fra = multifra(stimspets, spetfreq, spetlevel, analwin, data.channels, trials, data.chanlist, data.frqs, data.lvls, ax);
@@ -57,9 +59,25 @@ function synuiplotting(app)
         for freq = 1:size(fra, 3)
             ftcstats(:,freq,:) = ftcthreshold(fra(:,:,freq), sort(unique(data.lvls)), spontrates, spontsig);
         end
-        hold(ax, 'on')
-        plot(ax, 1:numel(unique(data.frqs)), 1+numel(unique(data.lvls)) - ftcstats(:,:,1)./10, 'wo-', 'LineWidth', 4)
-        hold(ax, 'off')
+        realfra = permute(fra, [2 3 1]);
+        Rate = realfra(:);
+        frachannel = repmat(data.chanlist', numel(unique(data.frqs))*numel(unique(data.lvls)), 1);
+        Channel = frachannel(:);
+        frqlist = sort(unique(data.frqs));
+        frafreq = repmat(frqlist', numel(unique(data.lvls)), numel(data.chanlist));
+        Frequency = frafreq(:);
+        lvllist = sort(unique(data.lvls));
+        Level = repmat(lvllist, numel(unique(data.frqs)) * numel(data.chanlist), 1);
+        fratable = table(Channel, Frequency, Level, Rate);
+        for chan = 1:size(fra, 1)
+            labeledfra(chan,:,:) = [[chan; lvllist], [frqlist'; squeeze(fra(chan,:,:))]];
+        end
+
+        
+        
+%         hold(ax, 'on')
+%         plot(ax, 1:numel(unique(data.frqs)), 1+numel(unique(data.lvls)) - ftcstats(:,:,1)./10, 'wo-', 'LineWidth', 4)
+%         hold(ax, 'off')
         [~,CFi] = min(ftcstats(:,:,1), [], 2);
         frqlist = sort(unique(data.frqs));
         lvllist = sort(unique(data.lvls));
@@ -69,11 +87,11 @@ function synuiplotting(app)
         allthresh = ftcstats(:,:,1);
         thresh = diag(squeeze(ftcstats(:,CFi,1)));
         if app.ClustsCheck.Value
-            ftctable = table(data.channelsortorder(data.chanlist), peakrate, BF./1000, BL, CF./1000, thresh, allthresh, ...
-                'VariableNames', {'Cluster', 'PeakRate_Hz', 'BestFreq_kHz', 'BestLevel_dB', 'CharFreq_kHz', 'Thresh_CF_dB', 'AllThresh'});
+            ftctable = table(data.channelsortorder(data.chanlist), peakrate, BF./1000, BL, CF./1000, thresh, allthresh, spontsig, ...
+                'VariableNames', {'Cluster', 'PeakRate_Hz', 'BestFreq_kHz', 'BestLevel_dB', 'CharFreq_kHz', 'Thresh_CF_dB', 'AllThresh', 'ThresholdRate_Hz'});
         else
-            ftctable = table(data.chanlist, peakrate, BF./1000, BL, CF./1000, thresh, allthresh, ...
-                'VariableNames', {'Channel', 'PeakRate_Hz', 'BestFreq_kHz', 'BestLevel_dB', 'CharFreq_kHz', 'Thresh_CF_dB', 'AllThresh'});
+            ftctable = table(data.chanlist, peakrate, BF./1000, BL, CF./1000, thresh, allthresh, spontsig, ...
+                'VariableNames', {'Channel', 'PeakRate_Hz', 'BestFreq_kHz', 'BestLevel_dB', 'CharFreq_kHz', 'Thresh_CF_dB', 'AllThresh', 'ThresholdRate_Hz'});
         end
         for i = 1:numel(frqlist)
             threshnames{i} = ['Thresh_' num2str(round(frqlist(i)./1000)), 'kHz_dB'];
@@ -229,4 +247,5 @@ function synuiplotting(app)
     app.data.lfpstatstable = psthdata.lfpstatstable;
     app.data.statstable = psthdata.statstable;
     app.data.ftctable = ftctable;
-    app.data.fra = fra;
+    app.data.fra = labeledfra;
+    app.data.fratable = fratable;
