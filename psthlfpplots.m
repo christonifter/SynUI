@@ -499,7 +499,7 @@ function out = psthlfpplots(app, data)
     [PSTH2pmax, PSTH2plati] = max(pst(2).bincount);
     PSTH2plat = pst(2).bintime(PSTH2plati);
 %threshold rates
-    if numel(unique(data.lvls))> 1 || numel(unique(data.frqs))> 1
+    if numel(unique(data.lvls))> 1 && numel(unique(data.frqs))> 1
         out.statstable = table([]);
         out.lfpstatstable = table([]);
     else
