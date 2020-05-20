@@ -1,5 +1,6 @@
 function synuiplotting(app)
     app.DialogueLabel.Text = 'Math...';
+tic
     data = app.data;
     if isfield(data, 'sttraces')
         sttracesplot(app)
@@ -33,6 +34,8 @@ function synuiplotting(app)
 %The frequency and level of the last stimulus preceding each spike is stored in spetfreq and spetlevel
     binwindow = app.BinEdit.Value./1000; %PSTH bin size (sec)
     analwin = [app.OnsetEdit.Value app.OffsetEdit.Value]./1000; %ftc analysis window;
+disp('spike times aligned')
+toc
 %tuning curve
     ax = app.FTCAxes; cla(app.FTCAxes, 'reset');
     if app.FTCPopupCheck.Value
@@ -130,6 +133,8 @@ function synuiplotting(app)
             set(ax, 'YTickLabel', channelsortorder);
         end
     end
+disp('FTC plotted')
+toc
 %running spike rate average
     bincount = NaN(round(max(data.spets)/binwindow), data.nchans);
     for chan = data.chanlist'
@@ -151,8 +156,12 @@ function synuiplotting(app)
     data.ratetable = table(reshape(bintime, [numel(bintime), 1]), bincount, 'VariableNames', {'BinTime', 'BinCount'});
     app.frateTable.Data = [(1:max(data.chanlist))', max(bincount)'./binwindow];
     app.frateTable.ColumnName = {'Chan', 'MaxRate'};
+disp('running spike rate plotted')
+toc
 %PSTH and LFPs
         psthdata = psthlfpplots(app, data);
+disp('psth and lfp plotted')
+toc
 %Cluster Waveforms
     if app.ClustsCheck.Value
         cluster = app.data.cluster;

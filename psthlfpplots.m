@@ -28,6 +28,8 @@ function out = psthlfpplots(app, data)
             end
         end
     realchanlist = find(chanvec);
+    nchansuse = min([size(data.LFP, 2), numel(realchanlist)]);
+    realchanlist = realchanlist(1:nchansuse);
         raw = data.raw;
         fny = data.fs/2; 
         fcl = app.HPCFEdit.Value;
@@ -453,10 +455,12 @@ function out = psthlfpplots(app, data)
             lfp(i).x = (1:cycleperiod)'.*1E3./data.fs;
             lfpmeans = mean(lfpcycle, 3); 
             lfp(i).y = lfpmeans(:, realchanlist);
-            [a,b,c] =lfppeaks(lfp(i).y);
-            lfp(i).peaks = a.*1E3;
-            lfp(i).lats = b.*1E3./data.fs;
-            lfp(i).slopes = c.*data.fs;
+            if numel(realchanlist)> 0
+                [a,b,c] =lfppeaks(lfp(i).y);
+                lfp(i).peaks = a.*1E3;
+                lfp(i).lats = b.*1E3./data.fs;
+                lfp(i).slopes = c.*data.fs;
+            end
             rmswin = max([1 round(app.RMSonEdit.Value*data.fs/1E3)]):min([size(lfp(i).y, 1) round(app.RMSoffEdit.Value*data.fs/1E3)]);
             lfp(i).rms = rms(lfp(i).y(rmswin,:))'.*1E3;
             rectangle(lax(i), 'Position', [app.RMSonEdit.Value -max(realchanlist) app.RMSoffEdit.Value-app.RMSonEdit.Value  max(realchanlist)], 'FaceColor', .8*[.8 1 .8], 'EdgeColor', .8*[1 1 1]);
@@ -534,6 +538,7 @@ function out = psthlfpplots(app, data)
                 'RespOnset1_ms', 'RespOffset1_ms', 'RespDuration1_ms', 'RespOnset2_ms', 'RespOffset2_ms', 'RespDuration2_ms', ... 
                 'VectorStrength1', 'VectorStrength2', 'Jitter1_ms', 'Jitter2_ms', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
                 'DCPower1', 'DCPower2', 'TemporalCodingFraction1', 'TemporalCodingFraction2', 'ModGain_dB', 'TCF_Diff'});
+            if numel(realchanlist)>0
             out.lfpstatstable = table(realchanlist, lfp(1).peaks(1,:)', lfp(1).peaks(2,:)', lfp(1).peaks(3,:)', ...
                 lfp(2).peaks(1,:)', lfp(2).peaks(2,:)', lfp(2).peaks(3,:)', lfp(1).lats(1,:)', ...
                 lfp(1).lats(2,:)', lfp(1).lats(3,:)', lfp(1).lats(7,:)'-lfp(1).lats(6,:)', lfp(2).lats(1,:)',...
@@ -544,6 +549,7 @@ function out = psthlfpplots(app, data)
                 'LFP2MaxPeak2_mV', 'LFP1MinLat_ms', 'LFP1MaxLat1_ms', 'LFP1MaxLat2_ms', 'LFP1PeakDur_ms', 'LFP2MinLat_ms', 'LFP2MaxLat1_ms', ...
                 'LFP2MaxLat2_ms',  'LFP2PeakDur_ms', 'LFP1FallSlope_mVpms', 'LFP1RiseSlope_mVpms', 'LFP1AveFallSlope_mVpms', 'LFP1AveRiseSlope_mVpms', ...
                 'LFP2FallSlope_mVpms', 'LFP2RiseSlope_mVpms', 'LFP2AveFallSlope_mVpms', 'LFP2AveRiseSlope_mVpms', 'LFP1RMS_mV', 'LFP2RMS_mV'});
+            end
 
             rat1 = squeeze(p(2,:,:)./p(1,:,:));
             rat2 = squeeze(p(2,1,:)./p(1,1,:));
