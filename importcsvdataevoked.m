@@ -1,7 +1,7 @@
 % if ~exist('utbl', 'var')
-    statspath = 'C:\Users\cmlem\Documents\ExperimentData\Stats\';
-    paramspath = 'C:\Users\cmlem\Documents\ExperimentData\Param\';
-    LDSpath = 'C:\Users\cmlem\Documents\ExperimentData\LDSPSTH\';
+    statspath = 'C:\Users\cmlem\Documents\ExperimentData\evokeStats\';
+    paramspath = 'C:\Users\cmlem\Documents\ExperimentData\evokeParam\';
+    LDSpath = 'C:\Users\cmlem\Documents\ExperimentData\evokeLDS\';
     outpath = 'C:\Users\cmlem\Documents\ExperimentData\summarystats\';
     y = dir(statspath);
     z = dir(paramspath);
@@ -57,7 +57,7 @@
         utbl = [utbl; tbl];
     end
     
-    A = (utbl.ADSpikeCount_Cont);
+    AD = (utbl.ADSpikeCount_Cont);
 %     logAD(~isfinite(logAD)) = NaN;
     
     utbl = [utbl partbl table(AD)];
@@ -68,34 +68,6 @@ ADtbl = utbl(utbl.EarlySpikeCount> 0,:);
 nonADtbl = utbl(utbl.EarlySpikeCount == 0,:);
 ADsoundtbl = ADtbl(ADtbl.onsetrate > poissinv(.99, ADtbl.AveRate_PSTH1_Hz*2.5)/2.5, :);    
 nonADsoundtbl = nonADtbl(nonADtbl.onsetrate > poissinv(.99, nonADtbl.AveRate_PSTH1_Hz*2.5)/2.5, :);
-umod = fitlm(ADtbl, 'AD ~ LDSLevel')
-figure(1); plot(ADtbl.LDSLevel, ADtbl.AD, 'k.')
-hold on;
-plot(1:450, (table2array(umod.Coefficients(1,1)) + table2array(umod.Coefficients(2,1)).*(1:450)), 'r--') 
-hold off;
-xlim([0 100])
-box off;
-% set(gca, 'YTick', [1 10 100 1000]);
-% set(gca, 'YTickLabel', [1 10 100 1000]);
-% set(gcf, 'Position', [100 100 300 300]);
-xlabel('Sound Level (dB SPL)')
-ylabel('LSA spikes')
-
-umod = fitlm(ADtbl, 'AD ~ LDSspikecount')
-figure(2); plot(ADtbl.LDSspikecount, ADtbl.AD, 'k.')
-hold on;
-plot([1 4E4], (table2array(umod.Coefficients(1,1)) + table2array(umod.Coefficients(2,1)).*[1 4E4]), 'r--') 
-hold off;
-box off;
-% set(gca, 'YTick', [1 10 100 1000]);
-% set(gca, 'YTickLabel', [1 10 100 1000]);
-% set(gcf, 'Position', [100 100 300 300]);
-xlabel('Sound-evoked spike count')
-ylabel('LSA spikes')
-
-[r, p] = corr(ADtbl.LDSaverate, ADtbl.AD, 'rows', 'complete')
-[r, p] = corr(ADtbl.LDSLevel, ADtbl.AD, 'rows', 'complete');
-
 
 
 writetable(utbl, [outpath 'allchannels.csv'])
