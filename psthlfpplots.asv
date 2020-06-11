@@ -341,6 +341,7 @@ function out = psthlfpplots(app, data)
                 sounddriven(chan, i) = (sum(ismember(1:4, sortedpeakf))>=3); %(sum(sortedpeakf(1:2)-(1:2)') == 0) & 
                 peaklist(chan, 1:min([numel(sortedpeakf), 10]), i) = sortedpeakf(1:min([numel(sortedpeakf), 10]));
             end
+            app.data.sounddriven = sounddriven;
             if app.SpectraCheck.Value
                  figure(1);
                  subplot(1,2,i)
@@ -405,7 +406,7 @@ function out = psthlfpplots(app, data)
                 pst(i).analcount(chan, 1) = sum(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) > app.PSTHOnsetEdit.Value*1E-3 & ...
                     pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) < app.PSTHOffsetEdit.Value*1E-3);
                 pst(i).baselinecount(chan, 1) = sum(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) > app.BaselineStartEdit.Value*1E-3 & ...
-                    pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) < app.PSTHBaselineEndEdit.Value*1E-3);
+                    pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) < app.BaselineEndEdit.Value*1E-3);
 %estimate baseline spiking from first 7 ms
                 cbaseline = sum(pst(i).PSTHspets(pst(i).PSTHchans==data.chanlist(chan)) < 7E-3)*app.PSTHBinEdit.Value/7;
                 pp = app.CLEdit.Value/100;
@@ -420,10 +421,10 @@ function out = psthlfpplots(app, data)
                     offset(chan, i) = NaN;
                 end
             end
-            analduration = (app.PSTHOffsetEdit.Value-app.PSTHOnsetEdit.Value)*1E-3
-            baselineduration = (app.BaselineEndEdit.Value-app.BasekubeStartEdit.Value)*1E-3
-            pst(i).analrate = pst(i).analcount./analduration;
-            pst(i).analrate = pst(i).analcount./analduration;
+            analduration = (app.PSTHOffsetEdit.Value-app.PSTHOnsetEdit.Value)*1E-3;
+            baselineduration = (app.BaselineEndEdit.Value-app.BaselineStartEdit.Value)*1E-3;
+            pst(i).analrate = pst(i).analcount./analduration./ncycles;
+            pst(i).baselinerate = pst(i).baselinecount./baselineduration./ncycles;
             VS2(:,i) = VS;
 
             yrange3(i,:) = yrange2./psthwindow./ncycles;
@@ -520,17 +521,20 @@ function out = psthlfpplots(app, data)
     out.lfp1table = table(lfp(1).x, lfp(1).y, 'VariableNames', {'Time', 'LFPuV'});
     out.lfp2table = table(lfp(2).x, lfp(2).y, 'VariableNames', {'Time', 'LFPuV'});
 %find peak rate/latency   
-    psthwindow = app.PSTHBinEdit.Value./1000;
+    psthwindow = app.BinEdit.Value./1000;
     CI5(1,:) = poissinv(5/100, averate(1,:).*psthwindow)./psthwindow;
     CI5(2,:) = poissinv(5/100, averate(2,:).*psthwindow)./psthwindow;
     CI95(1,:) = poissinv(95/100, averate(1,:).*psthwindow)./psthwindow;
     CI95(2,:) = poissinv(95/100, averate(2,:).*psthwindow)./psthwindow;
+    lastfourCI95(:,1) = poissinv(95/100, app.data.lastfourrate.*psthwindow)./psthwindow;
     
     if app.PSTHCycleCheck.Value
         CI5(1,:) = norminv(5/100, averate(1,:), std(pst(1).bincount));
         CI5(2,:) = norminv(5/100, averate(2,:), std(pst(2).bincount));
         CI95(1,:) = norminv(95/100, averate(1,:), std(pst(1).bincount));
         CI95(2,:) = norminv(95/100, averate(2,:), std(pst(2).bincount));
+        baselineCI95(1,:) = poissinv(95/100, pst(1).baselinerate);
+        baselineCI95(2,:) = poissinv(95/100, pst(2).baselinerate);
         CI5(isnan(CI5)) = 0;
         CI95(isnan(CI95)) = 0;
     end
@@ -541,15 +545,17 @@ function out = psthlfpplots(app, data)
     PSTH2plat = pst(2).bintime(PSTH2plati);
 %threshold rates
 %FRA
-    if numel(unique(data.lvls))> 1 && numel(unique(data.frqs))> 1
+    if numel(unique(data.lvls))> 1 || numel(unique(data.frqs))> 1
         out.statstable = table([]);
 %         out.lfpstatstable = table([]);
     else
 %LDS
         out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', ...
-            CI95(1,:)', LDSaverate, LDSspikecount, LDSduration, app.data.firststimbinrate, PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
+            CI95(1,:)', LDSaverate, LDSspikecount, LDSduration, app.data.firststimbinrate, ...
+            app.data.lastfourrate, lastfourCI95, PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
             'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', ...
-            'p95_Confidence_Level', 'LDSaverate', 'LDSspikecount', 'LDSduration', 'LDS First bin rate', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_sec', ...
+            'p95_Confidence_Level', 'LDSaverate', 'LDSspikecount', 'LDSduration', 'LDSonsetrate_Hz', ...
+            'Rate4secBeforeLDS_Hz', 'Last4secCI95_Hz', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_sec', ...
             'MaxRate_PSTH2_Hz', 'MaxRateLatency_PSTH2_sec'});
 %LDS-SN        
         if isempty(VS2)
@@ -570,11 +576,13 @@ function out = psthlfpplots(app, data)
             hasntmultiplespikes = find(sum(trainpst(1).bincount>0) < 1.5 | sum(trainpst(2).bincount>0) < 1.5);
             modgaindb = 10*log10(AC(2,:)'./AC(1,:)');
             modgaindb(hasntmultiplespikes) = NaN;
-            out.statstable = addvars(out.statstable, sounddriven(:,1), sounddriven(:,2), pst(1).analcount, pst(2).analcount, halfmaxdur(:,1), halfmaxdur(:,2), ...
+            out.statstable = addvars(out.statstable, sounddriven(:,1), sounddriven(:,2), pst(1).analrate, pst(2).analrate, ...
+                pst(1).baselinerate, pst(2).baselinerate, halfmaxdur(:,1), halfmaxdur(:,2), ...
                 onset(:,1), offset(:,1), offset(:,1)-onset(:,1), onset(:,2), offset(:,2), offset(:,2)-onset(:,2), ...
                 VS2(:,1), VS2(:,2), jitter(:,1).*1000, jitter(:,2).*1000, AC(1,:)', AC(2,:)', DC(1,:)', DC(2,:)', ...
                 100.*TCF(1,:)', 100.*TCF(2,:)', modgaindb, 100.*(TCF(2,:)' - TCF(1,:)'), ...
-                'NewVariableNames', {'SoundDriven_1', 'SoundDriven_2', 'WindowCount_PSTH1', 'WindowCount_PSTH2', 'Duration1_ms', 'Duration2_ms', ...
+                'NewVariableNames', {'PulseDriven_1', 'PulseDriven_2', 'WindowRate1_Hz', 'WindowRate2_Hz', ...
+                'BaselineRate1_Hz', 'BaselineRate2_Hz', 'Duration1_ms', 'Duration2_ms', ...
                 'RespOnset1_ms', 'RespOffset1_ms', 'RespDuration1_ms', 'RespOnset2_ms', 'RespOffset2_ms', 'RespDuration2_ms', ... 
                 'VectorStrength1', 'VectorStrength2', 'Jitter1_ms', 'Jitter2_ms', 'SpectralPowerMod1', 'SpectralPowerMod2', ...
                 'DCPower1', 'DCPower2', 'TemporalCodingFraction1', 'TemporalCodingFraction2', 'ModGain_dB', 'TCF_Diff'});
