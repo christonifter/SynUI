@@ -1,4 +1,4 @@
-function spontrates = findspontrate(spets, stimons, channels, chanlist, analwin)
+function [spontrates, spontstd] = findspontratev2(spets, stimons, channels, chanlist, analwin)
 
 %find spontaneous rate from recording during pulsed sound presentation.
 %The strategy is to count spikes from a time window before each sound onset.
@@ -24,3 +24,4 @@ analchans = channels(spikeisinanalwin);
 
 spontrates = histcounts(analchans, .5+(0:max(chanlist)))'./1;
 spontrates = spontrates(chanlist);
+spontstd = 0;

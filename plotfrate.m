@@ -21,6 +21,12 @@ function plotfrate(app, frate, bintime, stimons, stimoffs, chanlist)
             rectangle(ax, 'Position', [stimp(stim, 1) -100  stimp(stim, 2)-stimp(stim, 1) 100], 'FaceColor', .8*[1 1 1], 'EdgeColor', .8*[1 1 1])
         end
     end
+    if numel(stimoffs > 0)
+        for stim = 1:size(stimp, 1)
+            rectangle(ax, 'Position', [stimp(stim, 1) -100  stimp(stim, 2)-stimp(stim, 1) 100], 'FaceColor', .8*[1 1 1], 'EdgeColor', .8*[1 1 1])
+        end
+    end
+
     plot(ax, bintime, frate)
 %                     plot(ax, stimp', [0 0], 'r-', 'LineWidth', 4);
     hold(ax, 'off');

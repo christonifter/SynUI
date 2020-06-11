@@ -16,12 +16,16 @@ function [yrange, baseline] = plotpsth(app, ax, pst, averate, yrange, chanlist, 
             rectangle(ax(i), 'Position', [stims(i,1) -max(chanlist)  stims(i,2)./scalet max(chanlist)], 'FaceColor', .8*[1 1 1], 'EdgeColor', .8*[1 1 1]);
             hold(ax(i), 'on');
             rectangle(ax(i), 'Position', [app.PSTHOnsetEdit.Value -max(chanlist)  app.PSTHOffsetEdit.Value-app.PSTHOnsetEdit.Value max(chanlist)], 'FaceColor', .8*[1 1 .9], 'EdgeColor', .8*[1 1 .9]);
+            rectangle(ax(i), 'Position', [app.BaselineStartEdit.Value -max(chanlist)  app.BaselineEndEdit.Value-app.BaselineStartEdit.Value max(chanlist)], 'FaceColor', .8*[.9 1 1], 'EdgeColor', .8*[.9 1 1]);
             if ~app.PSTHButton.Value || i == 1 || ~app.PSTHCycleCheck.Value
                 plot(ax(i), pst(i).bintime./scalet, (pst(i).bincount./yrange(i,:))- chanlist', 'Color', [.4 .4 1], 'LineWidth', 1);
             else
                 plot(ax(i), pst(i).bintime./scalet, (pst(i).bincount./yrange(i,:))- chanlist', 'r', 'LineWidth', 1);
             end
             plot(ax(i), pst(i).PSTHspets./scalet, -pst(i).PSTHchans, 'k.');
+            if app.PSTHCycleCheck.Value
+                plot(ax(i), 0.5.*ones(numel(chanlist), 1), .5-chanlist.*app.data.sounddriven(:,i), 'm*');
+            end
 
 %Option 1 (recommended by CML) finds confidence level from poisson distribution of # spikes per bin period
 %However, the confidence level will vary with bin period
