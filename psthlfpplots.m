@@ -526,7 +526,6 @@ function out = psthlfpplots(app, data)
     CI5(2,:) = poissinv(5/100, averate(2,:).*psthwindow)./psthwindow;
     CI95(1,:) = poissinv(95/100, averate(1,:).*psthwindow)./psthwindow;
     CI95(2,:) = poissinv(95/100, averate(2,:).*psthwindow)./psthwindow;
-    lastfourCI95(:,1) = poissinv(95/100, app.data.lastfourrate.*psthwindow)./psthwindow;
     
     if app.PSTHCycleCheck.Value
         CI5(1,:) = norminv(5/100, averate(1,:), std(pst(1).bincount));
@@ -550,6 +549,7 @@ function out = psthlfpplots(app, data)
 %         out.lfpstatstable = table([]);
     else
 %LDS
+    lastfourCI95(:,1) = poissinv(95/100, app.data.lastfourrate.*psthwindow)./psthwindow;
         out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', ...
             CI95(1,:)', LDSaverate, LDSspikecount, LDSduration, app.data.firststimbinrate, ...
             app.data.lastfourrate, lastfourCI95, PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
