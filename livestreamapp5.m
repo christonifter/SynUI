@@ -208,7 +208,7 @@ else
         frate = NaN;
         bintime = NaN;
     end
-
+    cla(app.rateAxes, 'reset');
     plotfrate(app, frate, bintime, stimons, stimoffs, chanlist)
      xlim(app.rateAxes, [max([0 currtime(end)-ratewin]), max([1 currtime(end)])]);                
 
