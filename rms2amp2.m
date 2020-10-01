@@ -9,7 +9,7 @@ function rms2amp(app)
      scaling = 18/(BW+3.75)+0.6;
      dbshift2 = 20*log10(scaling); %correction for bandwidth
 %     dbshift2 = 12.5*BW;
-     
+        
     MEi = find(ismember(app.pars, 'ModExponent'));
     MEfield = ['Param' num2str(MEi) 'Edit'];
     MDi = find(ismember(app.pars, 'ModDepth'));

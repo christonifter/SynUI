@@ -20,11 +20,11 @@ outname = '19-99_007_19kHz_50-60dB_blockave';
 y = dir(pwd);
 for filei = 1:(numel(y)-2)
     ss = readtable(y(filei+2).name);
-    sp1(:, filei) = ss.AveRate_PSTH1_Hz;
-    sp2(:, filei) = ss.AveRate_PSTH2_Hz;
+    sp1(:, filei) = ss.SpectralPowerMod1;
+    sp2(:, filei) = ss.SpectralPowerMod2;
     [~, fni, ~] = fileparts(y(filei+2).name);
-    prefn(1, filei) = {['pre_rate' num2str(filei) '_' fni]};
-    fn(1, filei) = {['post_rate' num2str(filei) '_' fni]};
+    prefn(1, filei) = {['pre_sp' num2str(filei) '_' fni]};
+    fn(1, filei) = {['post_sp' num2str(filei) '_' fni]};
     cfn(1, filei) = {['change' num2str(filei) '_' fni]};
 end
 Channel = ss.Channel;
@@ -42,7 +42,7 @@ end
 out = table(Channel, sp1, pre_mean, pre_SEM, CI2, sp2, change);
 out2 = out;
 try
-    out2 =splitvars(out, {'sp2', 'change'}, 'NewVariableNames', {fn, cfn});
+    out2 =splitvars(out, {'sp1', 'sp2', 'change'}, 'NewVariableNames', {prefn, fn, cfn});
 catch ME
     ME
 end

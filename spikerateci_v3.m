@@ -42,7 +42,7 @@ end
 out = table(Channel, sp1, pre_mean, pre_SEM, CI2, sp2, change);
 out2 = out;
 try
-    out2 =splitvars(out, {'sp2', 'change'}, 'NewVariableNames', {fn, cfn});
+    out2 =splitvars(out, {'sp1', 'sp2', 'change'}, 'NewVariableNames', {prefn, fn, cfn});
 catch ME
     ME
 end
