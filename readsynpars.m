@@ -38,38 +38,29 @@ function updatepars3(app)
     %Hide things
     if sum([ismember(app.pars, 'StimHiMS'); ismember(app.pars, 'TrainDurationMS')])
         app.StimulusPanel.Visible = 1;
-        if sum(ismember(app.pars, 'StimHiMS'))
-            app.StimOnEdit.Visible = 1;
-            app.StimOnLabel.Visible = 1;
-            app.StimOffEdit.Visible = 1;
-            app.StimOffLabel.Visible = 1;
-        else
-            app.StimOnEdit.Visible = 0;
-            app.StimOnLabel.Visible = 0;
-            app.StimOffEdit.Visible = 0;
-            app.StimOffLabel.Visible = 0;            
-        end
-        if sum(ismember(app.pars, 'TrainDurationMS'))
-            app.TrainOnEdit.Visible = 1;
-            app.TrainOnLabel.Visible = 1;
-            app.TrainOffEdit.Visible = 1;
-            app.TrainOffLabel.Visible = 1;
-        else
-            app.TrainOnEdit.Visible = 0;
-            app.TrainOnLabel.Visible = 0;
-            app.TrainOffEdit.Visible = 0;
-            app.TrainOffLabel.Visible = 0;            
-        end
+        showstim = sum(ismember(app.pars, 'StimHiMS'));
+            app.PulseDurEdit.Visible = showstim;
+            app.PulseDurationmsLabel.Visible = showstim;
+            app.PulseRateEdit.Visible = showstim;
+            app.PulserateHzLabel.Visible = showstim;
+            app.RampEdit.Visible = showstim;
+            app.RampmsLabel.Visible = showstim;
+        showtrain = sum(ismember(app.pars, 'TrainDurationMS')); 
+            app.TrainOnEdit.Visible = showtrain;
+            app.TrainOnLabel.Visible = showtrain;
+            app.TrainOffEdit.Visible = showtrain;
+            app.TrainOffLabel.Visible = showtrain;
+
         if sum(ismember(app.pars, 'StimFrequencyHz'))
             app.StimFreqEdit.Visible = 1;
             app.StimFreqLabel.Visible = 1;
             app.StimBWEdit.Visible = 0;
             app.StimBWLabel.Visible = 0;
         elseif sum(ismember(app.pars, 'StimHPCF'))
-                app.StimFreqEdit.Visible = 1;
-                app.StimFreqLabel.Visible = 1;
-                app.StimBWEdit.Visible = 1;
-                app.StimBWLabel.Visible = 1;
+            app.StimFreqEdit.Visible = 1;
+            app.StimFreqLabel.Visible = 1;
+            app.StimBWEdit.Visible = 1;
+            app.StimBWLabel.Visible = 1;
         else
             app.StimFreqEdit.Visible = 0;
             app.StimFreqLabel.Visible = 0;

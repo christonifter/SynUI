@@ -7,13 +7,18 @@ function paramupdate(app, ind)
     StimHPCFi = find(ismember(app.pars, 'StimHPCF'));
     StimLPCFfield = ['Param' num2str(StimLPCFi) 'Edit'];
     StimHPCFfield = ['Param' num2str(StimHPCFi) 'Edit'];
+    StimHii = find(ismember(app.pars, 'StimHiMS'));
+    StimLoi = find(ismember(app.pars, 'StimLoMS'));
+    StimHifield = ['Param' num2str(StimHii) 'Edit'];
+    StimLofield = ['Param' num2str(StimLoi) 'Edit'];
     parfield = ['Param' num2str(ind) 'Edit'];
 
     switch char(app.pars(ind))
         case 'StimHiMS'
-            app.StimOnEdit.Value = round(app.(parfield).Value*1E3)/1E3;
+            app.PulseDurEdit.Value = app.(StimHifield).Value + app.RampEdit.Value*1.25;
+            app.PulseRateEdit.Value = 1E3/(app.(StimHifield).Value + app.(StimLofield).Value);
         case 'StimLoMS'
-            app.StimOffEdit.Value = round(app.(parfield).Value*1E3)/1E3;
+            app.PulseRateEdit.Value = 1E3/(app.(StimHifield).Value + app.(StimLofield).Value);
         case 'TrainDurationMS'
             app.TrainOnEdit.Value = round(app.(parfield).Value)/1000;
         case 'TrainGapMS'
