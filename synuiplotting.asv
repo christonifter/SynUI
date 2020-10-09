@@ -138,10 +138,7 @@ toc
     for chan = data.chanlist'
         [bincount(:, chan), bintime] = hist(data.spets(data.channels==chan), 0.5*binwindow:binwindow:max(data.spets));
     end
-    if numel(unique(data.lvls))< 2 && numel(unique(data.frqs))< 2
-        app.data.firststimbinrate = bincount(round(data.stimons(1)./binwindow) + 1, data.chanlist)'./binwindow;
-        app.data.lastfourrate = mean(bincount(round(data.stimons(1)./binwindow) + 1 + (-4./binwindow:-1), data.chanlist)./binwindow)';
-    end
+    app.data.firststimbinrate = bincount(round(data.stimons(1)./binwindow) + 1, :)'
     if app.fratescaleEdit.Value == 0
         yscale = max(bincount(:));
     else
@@ -179,6 +176,7 @@ toc
     end
     recpos = round([app.PSTH2StartEdit.Value + ref, -100, app.PSTH2EndEdit.Value-app.PSTH2StartEdit.Value, 100]);
     rectangle(ax, 'Position', recpos, 'FaceColor', [1 .8 .8], 'EdgeColor', [1 .8 .8]);
+    
     if isfield(app.data, 'evons')
         if numel(app.data.evons>0)
             if numel(app.data.evoffs)<numel(app.data.evons)
@@ -186,16 +184,16 @@ toc
             else
                 evp = [app.data.evons app.data.evoffs];
             end
-            if size(evp,1) > 400
-                counterinterval = ceil(size(evp,1)/100);
-            else
-                counterinterval = 1;
-            end
+        end
+        if size(evp,1) > 400
+            counterinterval = ceil(size(evp,1)/100);
+        else
+            counterinterval = 1;
+        end
 
-            for ev = 1:counterinterval:size(evp, 1)
-                plot(ax, evp(ev, 1), -.1, 'r.', 'LineWidth', 4);
-    %             rectangle(ax, 'Position', [evp(ev, 1) -100  evp(ev, 2)-evp(ev, 1) 100], 'FaceColor', .8*[1 1 1], 'EdgeColor', .8*[1 1 1])
-            end
+        for ev = 1:counterinterval:size(evp, 1)
+            plot(ax, evp(ev, 1), -.1, 'r.', 'LineWidth', 4);
+%             rectangle(ax, 'Position', [evp(ev, 1) -100  evp(ev, 2)-evp(ev, 1) 100], 'FaceColor', .8*[1 1 1], 'EdgeColor', .8*[1 1 1])
         end
     end
 
