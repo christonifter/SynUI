@@ -44,7 +44,7 @@ function updatepars3(app)
             app.PulseRateEdit.Visible = showstim;
             app.PulserateHzLabel.Visible = showstim;
             app.RampEdit.Visible = showstim;
-            app.RiseFallmsLabel.Visible = showstim;
+            app.RampmsLabel.Visible = showstim;
         showtrain = sum(ismember(app.pars, 'TrainDurationMS')); 
             app.TrainOnEdit.Visible = showtrain;
             app.TrainOnLabel.Visible = showtrain;
