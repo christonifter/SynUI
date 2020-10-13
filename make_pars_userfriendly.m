@@ -19,6 +19,9 @@ function paramupdate(app, ind)
             app.PulseRateEdit.Value = 1E3/(app.(StimHifield).Value + app.(StimLofield).Value);
         case 'StimLoMS'
             app.PulseRateEdit.Value = 1E3/(app.(StimHifield).Value + app.(StimLofield).Value);
+        case 'RiseFallMS'
+            app.RampEdit.Value = app.(parfield).Value;
+            app.PulseDurEdit.Value = app.(StimHifield).Value + app.RampEdit.Value*1.25;
         case 'TrainDurationMS'
             app.TrainOnEdit.Value = round(app.(parfield).Value)/1000;
         case 'TrainGapMS'
