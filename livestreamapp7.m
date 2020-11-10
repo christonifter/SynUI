@@ -3,6 +3,7 @@ function livestreamapp6(app, mode)
 app.DialogueLabel.Text = 'Beginning Experiment';
 readsynpars(app);
 chanlist = updatechans(app);
+app.breakflag = 0;
 spikevar = 'eSpk';
 wavevar = 'RAW1';
 stimvar = 'Stim';
@@ -239,14 +240,22 @@ else
         end
      end
 end
+metext = 'Ready.';
 loopc = loopc + 1;
 if (~app.InfiniteButton.Value) && (currtime(end) > endtime)
-
         loopcon = 0;
         app.syn.setMode(0);
          app.StimPanel.Visible = 0;
         updatemode(app);
 end
+if app.breakflag
+    loopcon = 0;
+    app.syn.setMode(0);
+    app.StimPanel.Visible = 0;
+    updatemode(app);
+    metext = 'User ended session.';
+end
+
     catch ME
         ME
         ME.stack(1)
@@ -255,7 +264,6 @@ end
     end
 end %while
 
-metext = 'Ready.';
 if exist('ME', 'var')
     metext = 'A MATLAB Error was thrown :(';
 end

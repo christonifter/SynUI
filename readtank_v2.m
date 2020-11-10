@@ -21,13 +21,8 @@ function out = readtank(path)
     end
     
 if isfield(data.streams, scalpvar)
-    out.raw = data.streams.(scalpvar).data'./20; %in V, 20x gain on the RA4LI
+    out.raw = data.streams.(scalpvar).data'; %in V
     out.fs = data.streams.(scalpvar).fs;
-
-    out.evons = out.evons + 2.05*1E-3; %RA4 headstage delay
-    out.evoffs = out.evoffs + 2.05*1E-3;
-    out.stimons = out.stimons + 2.05*1E-3;
-    out.stimoffs = out.stimoffs + 2.05*1E-3;
 else
 %           out.spets = data.snips.(spikevar).ts+.3; %FRAs collected before 1/7/2019 skipped the first stimulation
     out.spets = data.snips.(spikevar).ts;

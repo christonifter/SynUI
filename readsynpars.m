@@ -241,7 +241,7 @@ function updatepars3(app)
     plot(app.StimAxes, timevec4, yval, 'k-')
     
         
-    maxdur = max(timevec4);
+    maxdur = max([1 timevec4]);
     if app.LastoffsetnsecButton.Value
         maxdur = maxdur + app.ExpDurationEdit.Value;
     end
