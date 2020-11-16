@@ -32,9 +32,9 @@
     end
 
     isLDSdriven_discontinuous = utbl.LDSonsetrate_Hz > utbl.Last4secCI95_Hz;
-    baselineCI95_Hz = poissinv(95/100, utbl.BaselineRate1_Hz * 2.5)/2.5; %assuming LDS onset rate was measured from a 2.5 sec window   
+    baselineCI95_Hz = poissinv(95/100, utbl.BaselineRate1_Hz * 2.5)/2.5;    
     isLDSdriven_continuous = utbl.LDSonsetrate_Hz > baselineCI95_Hz;
-    utbl = [utbl partbl table(baselineCI95_Hz, isLDSdriven_continuous, isLDSdriven_discontinuous)];
+    utbl = [utbl partbl table([baselineCI95Hz isLDSdriven_continuous ])];
 %     utbl = addvars(utbl, isLDSdriven);
 % end
 writetable(utbl, [outpath 'allchannels.csv'])

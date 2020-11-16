@@ -140,7 +140,10 @@ toc
     end
     if numel(unique(data.lvls))< 2 && numel(unique(data.frqs))< 2
         app.data.firststimbinrate = bincount(round(data.stimons(1)./binwindow) + 1, data.chanlist)'./binwindow;
-        app.data.lastfourrate = mean(bincount(round(data.stimons(1)./binwindow) + 1 + (-4./binwindow:-1), data.chanlist)./binwindow)';
+        for chan = data.chanlist'
+            app.data.lastfourrate(chan,1) = sum(data.spets(data.channels==chan)<data.stimons(1) & data.spets(data.channels==chan) > (data.stimons(1) - 4))/4;
+        end
+%         app.data.lastfourrate = mean(bincount(round(data.stimons(1)./binwindow) + 1 + (-4./binwindow:-1), data.chanlist)./binwindow)';
     end
     if app.fratescaleEdit.Value == 0
         yscale = max(bincount(:));

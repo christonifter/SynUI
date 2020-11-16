@@ -532,8 +532,11 @@ function out = psthlfpplots(app, data)
         CI5(2,:) = norminv(5/100, averate(2,:), std(pst(2).bincount));
         CI95(1,:) = norminv(95/100, averate(1,:), std(pst(1).bincount));
         CI95(2,:) = norminv(95/100, averate(2,:), std(pst(2).bincount));
+        psthwindow
         baselineCI95(1,:) = poissinv(95/100, pst(1).baselinerate.*psthwindow)./psthwindow;
         baselineCI95(2,:) = poissinv(95/100, pst(2).baselinerate.*psthwindow)./psthwindow;
+        baselineCI95
+        
         CI5(isnan(CI5)) = 0;
         CI95(isnan(CI95)) = 0;
     end
