@@ -122,7 +122,7 @@ while loopcon
             nevs = numel(new.data.epocs.(evvar).onset(new.data.epocs.(evvar).data == 0));
         end
     end
-    if isfield(new.data.streams, scalpvar)
+    if isfield(new.data.streams, scalpvar) && numel(evons)>0
         usechan = 1;
         startsamp = round(evons.*fs);
         if min(startsamp)<1

@@ -236,6 +236,9 @@ function updatepars3(app)
     if ~isempty(regexp(app.ExperimentDrop.Value, 'LDS'))
         timevec4 = [timevec4, phase1 + max(timevec4) + gap2];
     end
+%     if strcmp(app.ExperimentDrop.Value(1), 'h')
+%         timevec4 = 10+[timevec4, phase1 + max(timevec4) + gap2];
+%     end
     yval = repmat([0 1 1 0], 1, numel(timevec4)/4);
 
     plot(app.StimAxes, timevec4, yval, 'k-')
