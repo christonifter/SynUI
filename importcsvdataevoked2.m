@@ -16,6 +16,9 @@
         BlockName = {bn};
         yrn = str2double(y(j).name(1:2));
         subn = str2double(y(j).name(4:5));
+        try
+            subn = str2double(y(j).name(4:6));
+        end
         siten = 0;
         exporder = j-2;
         expblock = str2double(bn(1:3));
@@ -32,9 +35,9 @@
     end
 
     isLDSdriven_discontinuous = utbl.LDSonsetrate_Hz > utbl.Last4secCI95_Hz;
-    baselineCI95_Hz = poissinv(95/100, utbl.BaselineRate1_Hz * 2.5)/2.5;    
+    baselineCI95_Hz = poissinv(95/100, utbl.BaselineRate1_Hz * 2.5)/2.5; %assuming LDS onset rate was measured from a 2.5 sec window   
     isLDSdriven_continuous = utbl.LDSonsetrate_Hz > baselineCI95_Hz;
-    utbl = [utbl partbl table([baselineCI95Hz isLDSdriven_continuous ])];
+    utbl = [utbl partbl table(baselineCI95_Hz, isLDSdriven_continuous, isLDSdriven_discontinuous)];
 %     utbl = addvars(utbl, isLDSdriven);
 % end
 writetable(utbl, [outpath 'allchannels.csv'])
