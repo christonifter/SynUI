@@ -56,6 +56,5 @@ if ~isempty(app.data.stimsig)
         load([app.TankEdit.Value '\params.mat']', 'changetable', 'stimtable');
     end
     app.data.stimstable = table(SynStimFreq, SynStimLevel, SynStimAmp,  AmpRMS1, AmpPP1, SynLDSCFreq, SynLDSLevel, SynLDSAmp, AmpRMS2, AmpPP2);
-    plot(app.data.stimsig)
 end
 end
