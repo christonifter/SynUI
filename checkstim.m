@@ -33,27 +33,38 @@ if ~isempty(app.data.stimsig)
     SynLDSLevel = NaN;
     SynStimFreq = NaN;
     SynLDSCFreq = NaN;
-    load([app.TankEdit.Value '\params.mat']');
-    if ismember('StimAmplitude', changetable.Properties.VariableNames)
-        SynStimAmp = changetable.StimAmplitude(1);
-    end
-    if ismember('LDSAmplitude', changetable.Properties.VariableNames)
-        SynLDSAmp = changetable.LDSAmplitude(1);
-    end
-    if sum(strcmpi(stimtable.stimname, 'Stimlevel'))
-        SynStimLevel = stimtable.stimval(find(strcmpi(stimtable.stimname, 'Stimlevel')));
-    end
-    if sum(strcmpi(stimtable.stimname, 'LDSlevel'))
-        SynLDSLevel = stimtable.stimval(find(strcmpi(stimtable.stimname, 'LDSlevel')));
-    end
-    if sum(strcmpi(stimtable.stimname, 'StimFreq'))
-        SynStimFreq = stimtable.stimval(find(strcmpi(stimtable.stimname, 'StimFreq')));
-    end
-    if sum(strcmpi(stimtable.stimname, 'LDSCFreq'))
-        SynLDSCFreq = stimtable.stimval(find(strcmpi(stimtable.stimname, 'LDSCFreq')));
-    end
     try
-        load([app.TankEdit.Value '\params.mat']', 'changetable', 'stimtable');
+        load([app.TankEdit.Value '\params.mat']');
+        if ismember('StimAmplitude', changetable.Properties.VariableNames)
+            SynStimAmp = changetable.StimAmplitude(1);
+        end
+        if ismember('LDSAmplitude', changetable.Properties.VariableNames)
+            SynLDSAmp = changetable.LDSAmplitude(1);
+        end
+        if sum(strcmpi(stimtable.stimname, 'Tonelevel'))
+            SynStimLevel = stimtable.stimval(find(strcmpi(stimtable.stimname, 'Tonelevel')));
+        end
+        if sum(strcmpi(stimtable.stimname, 'Stimlevel'))
+            SynStimLevel = stimtable.stimval(find(strcmpi(stimtable.stimname, 'Stimlevel')));
+        end
+        if sum(strcmpi(stimtable.stimname, 'LDSlevel'))
+            SynLDSLevel = stimtable.stimval(find(strcmpi(stimtable.stimname, 'LDSlevel')));
+        end
+        if sum(strcmpi(stimtable.stimname, 'TRMSEdit'))
+            SynLDSLevel = stimtable.stimval(find(strcmpi(stimtable.stimname, 'TRMSEdit')));
+        end
+        if sum(strcmpi(stimtable.stimname, 'ToneFreq'))
+            SynStimFreq = stimtable.stimval(find(strcmpi(stimtable.stimname, 'ToneFreq')));
+        end
+        if sum(strcmpi(stimtable.stimname, 'StimFreq'))
+            SynStimFreq = stimtable.stimval(find(strcmpi(stimtable.stimname, 'StimFreq')));
+        end
+        if sum(strcmpi(stimtable.stimname, 'CenterFreq'))
+            SynLDSCFreq = stimtable.stimval(find(strcmpi(stimtable.stimname, 'CenterFreq')));
+        end
+        if sum(strcmpi(stimtable.stimname, 'LDSCFreq'))
+            SynLDSCFreq = stimtable.stimval(find(strcmpi(stimtable.stimname, 'LDSCFreq')));
+        end
     end
     app.data.stimstable = table(SynStimFreq, SynStimLevel, SynStimAmp,  AmpRMS1, AmpPP1, SynLDSCFreq, SynLDSLevel, SynLDSAmp, AmpRMS2, AmpPP2);
 end
