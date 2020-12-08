@@ -27,7 +27,7 @@ function out = readtank(path)
         out.stimfs = data.streams.(stimsigvar).fs;
     end
     try
-        out.stimsig = data.streams.(stimvar3).data;
+        out.stimsig = data.streams.(stimvar3).data.*1E-3; %LDS-SN measured in mV
         out.stimfs = data.streams.(stimvar3).fs;
     end
         
