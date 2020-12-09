@@ -50,7 +50,7 @@ else
         out.lvls = data.epocs.(stimvar2).data;
         out.frqs = zeros(numel(out.stimons), 1); %RLN
         try
-            load([path '\params.mat']');
+            load([path '/params.mat']');
             if ismember('Frequency', changetable.Properties.VariableNames)
                 out.frqs = ones(size(out.stimons)).*changetable.Frequency(1);
             end
@@ -62,7 +62,7 @@ else
             out.frqs = zeros(numel(out.stimons), 1);
         end
         try
-            load([path '\params.mat']');
+            load([path '/params.mat']');
             if ismember('Level', changetable.Properties.VariableNames)
                 out.lvls = ones(size(out.stimons)).*changetable.Level(1);
             end
@@ -77,7 +77,7 @@ else
         out.frqs = zeros(numel(out.evons), 1); %RLN
         out.lvls = zeros(numel(out.evons), 1); %RLN
         try
-            load([path '\params.mat']');
+            load([path '/params.mat']');
             if ismember('Frequency', changetable.Properties.VariableNames)
                 out.frqs = ones(size(out.evons)).*changetable.Frequency(1);
             end

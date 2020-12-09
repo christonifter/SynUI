@@ -140,7 +140,7 @@ function updatepars3(app)
         pause(.1)
         bufferduration = 2000; %in ms, use an even number of seconds.
         bufferlength = round(bufferduration*195.3125);
-        fid = fopen('C:\TDT\Synapse\DMR500ic120s30dB.f32');
+        fid = fopen('C:/TDT/Synapse/DMR500ic120s30dB.f32');
         fsignal = fread(fid, bufferlength, 'float');
         nsignal = fsignal./max(fsignal);
         t = (1:(10*192000))./192000;
