@@ -215,7 +215,7 @@ toc
 disp('running spike rate plotted')
 toc
 %PSTH and LFPs
-        psthdata = psthlfpplots(app, data);
+        psthdata = psthlfpplots_v2(app, data);
 disp('psth and lfp plotted')
 toc
 %Cluster Waveforms

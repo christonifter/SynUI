@@ -8,16 +8,27 @@ function out = readtankfast(path)
     offvar = 'StOn';
     evvar = 'EvOn';
     scalpvar = 'RA4W';
+    stimsigvar = 'Sti1';
     
     out.frqs = 0;
     out.stimons = data.epocs.(offvar).onset(data.epocs.(offvar).data == 1);
     out.stimoffs = data.epocs.(offvar).onset(data.epocs.(offvar).data == 0);
     out.evons = [];
     out.evoffs = [];
+    out.stimsig = [];
+    out.stimfs = [];
     if isfield(data.epocs, evvar)
         evons = data.epocs.(evvar).onset(data.epocs.(evvar).data == 1);
         out.evoffs = data.epocs.(evvar).onset(data.epocs.(evvar).data == 0);
         out.evons = evons(1:numel(out.evoffs));
+    end
+    try
+        out.stimsig = data.streams.(stimsigvar).data;
+        out.stimfs = data.streams.(stimsigvar).fs;
+    end
+    try
+        out.stimsig = data.streams.(stimvar3).data.*1E-3; %LDS-SN measured in mV
+        out.stimfs = data.streams.(stimvar3).fs;
     end
     
 if isfield(data.streams, scalpvar)
