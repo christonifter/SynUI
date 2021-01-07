@@ -1,4 +1,4 @@
-function rms2amp(app)
+function rms2amp2(app)
     dbshift = [0, -1.765, -.337, .466, 1.111, 1.535, 1.981, 2.246, 2.589]; %correction for modulation exponent
 
     HPi = find(ismember(app.pars, 'HPCF'));

@@ -35,6 +35,21 @@ function updatepars3(app)
            end
        end
     end
+    
+    
+    hitime = 0;
+    lotime = 0;
+    ncyc = 1;
+    nrepeats = 0;
+    nldsrepeats = 1;
+    t1 = 0;
+    t2 = 0;
+    gap = 0;
+    gap2 = 0;
+    ldsgap = 0;
+
+    
+    
     %Hide things
     if sum([ismember(app.pars, 'StimHiMS'); ismember(app.pars, 'TrainDurationMS')])
         app.StimulusPanel.Visible = 1;
@@ -56,7 +71,7 @@ function updatepars3(app)
             app.StimFreqLabel.Visible = 1;
             app.StimBWEdit.Visible = 0;
             app.StimBWLabel.Visible = 0;
-        elseif sum(ismember(app.pars, 'StimHPCF'))
+        elseif sum(ismember(app.pars, 'StimHPCF')) || sum(ismember(app.pars, 'StimOctave1'))
             app.StimFreqEdit.Visible = 1;
             app.StimFreqLabel.Visible = 1;
             app.StimBWEdit.Visible = 1;
@@ -66,6 +81,20 @@ function updatepars3(app)
             app.StimFreqLabel.Visible = 0;
             app.StimBWEdit.Visible = 0;
             app.StimBWLabel.Visible = 0;
+        end
+        
+        if sum(ismember(app.pars, 'StimOctave1'))
+            app.PulseDurEdit.Visible = 0;
+            app.PulseDurationmsLabel.Visible = 0;
+            sweepspeed = 1.5; % oct/ms
+            
+            Oct1 = app.syn.getParameterValue('xAud', 'StimOctave1');
+            Oct2 = app.syn.getParameterValue('xAud', 'StimOctave2');
+            RampMS = app.syn.getParameterValue('xAud', 'RiseFallMS');
+            BW = Oct2 - Oct1;
+            StimHiMS = BW * sweepspeed - RampMS * 1.25;
+            app.syn.setParameterValue('xLDS', 'StimHiMS', StimHiMS);
+            hitime = BW * sweepspeed/1E3;
         end
         if sum(ismember(app.pars, 'StimAmplitude'))
             app.StimLevelEdit.Visible = 1;
@@ -84,11 +113,14 @@ function updatepars3(app)
         if sum(ismember(app.pars, 'Stim2FrequencyHz'))
             app.Stim2FreqEdit.Visible = 1;
             app.Stim2FreqLabel.Visible = 1;
-            app.Stim2LevelEdit.Visible = 1;
-            app.Stim2LevelLabel.Visible = 1;
         else
             app.Stim2FreqEdit.Visible = 0;
             app.Stim2FreqLabel.Visible = 0;
+        end
+        if sum(ismember(app.pars, 'Stim2Amplitude'))
+            app.Stim2LevelEdit.Visible = 1;
+            app.Stim2LevelLabel.Visible = 1;
+        else
             app.Stim2LevelEdit.Visible = 0;
             app.Stim2LevelLabel.Visible = 0;
         end
@@ -99,7 +131,6 @@ function updatepars3(app)
             app.TrainRepeatsEdit.Visible = 0;
             app.TrainRepeatsLabel.Visible = 0;
         end
-
     end
     if sum(ismember(app.pars, 'LDSDurationMS'))
         app.LDSPanel.Visible = 1;
@@ -155,16 +186,6 @@ function updatepars3(app)
 
     
     % build stim preview    
-    hitime = 0;
-    lotime = 0;
-    ncyc = 1;
-    nrepeats = 0;
-    nldsrepeats = 1;
-    t1 = 0;
-    t2 = 0;
-    gap = 0;
-    gap2 = 0;
-    ldsgap = 0;
     for par = 1:numel(app.pars)
         paramname = ['Par' num2str(par) 'Label'];
         synvaluename = ['Param' num2str(par) 'Label'];

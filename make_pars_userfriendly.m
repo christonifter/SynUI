@@ -3,6 +3,10 @@ function paramupdate(app, ind)
     HPCFi = find(ismember(app.pars, 'HPCF'));
     LPCFfield = ['Param' num2str(LPCFi) 'Edit'];
     HPCFfield = ['Param' num2str(HPCFi) 'Edit'];
+    Oct1i = find(ismember(app.pars, 'StimOctave1'));
+    Oct2i = find(ismember(app.pars, 'StimOctave2'));
+    Oct1field = ['Param' num2str(Oct1i) 'Edit'];
+    Oct2field = ['Param' num2str(Oct2i) 'Edit'];
     StimLPCFi = find(ismember(app.pars, 'StimLPCF'));
     StimHPCFi = find(ismember(app.pars, 'StimHPCF'));
     StimLPCFfield = ['Param' num2str(StimLPCFi) 'Edit'];
@@ -57,6 +61,12 @@ function paramupdate(app, ind)
         case 'LPCF'
             app.LDSCFreqEdit.Value = round(sqrt(app.(HPCFfield).Value * app.(LPCFfield).Value))/1E3;
             app.LDSBWEdit.Value = round(log2(app.(LPCFfield).Value / app.(HPCFfield).Value)*1E3)/1E3;  
+        case 'StimOctave1'
+            app.StimFreqEdit.Value = round(2^(0.5*(app.(Oct1field).Value + app.(Oct2field).Value)))/1E3;
+            app.StimBWEdit.Value = app.(Oct2field).Value - app.(Oct1field).Value;  
+        case 'StimOctave2'
+            app.StimFreqEdit.Value = round(2^(0.5*(app.(Oct1field).Value + app.(Oct2field).Value)))/1E3;
+            app.StimBWEdit.Value = app.(Oct2field).Value - app.(Oct1field).Value;
         case 'StimHPCF'
             app.StimFreqEdit.Value = round(sqrt(app.(StimHPCFfield).Value * app.(StimLPCFfield).Value))/1E3;
             app.StimBWEdit.Value = round(log2(app.(StimLPCFfield).Value / app.(StimHPCFfield).Value)*1E3)/1E3;  
