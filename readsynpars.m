@@ -167,19 +167,32 @@ function updatepars3(app)
     end
 
     if sum(ismember(app.pars, 'buffer2'))
-        app.DialogueLabel.Text = 'PC -> Audio -> RZ6 (~1 min)';
-        pause(.1)
-        bufferduration = 2000; %in ms, use an even number of seconds.
-        bufferlength = round(bufferduration*195.3125);
-        fid = fopen('C:/TDT/Synapse/DMR500ic120s30dB.f32');
-        fsignal = fread(fid, bufferlength, 'float');
-        nsignal = fsignal./max(fsignal);
-        t = (1:(10*192000))./192000;
-        nsignal = sin(2*pi*400*t);
-        app.syn.setParameterValue('xDMR_audio','BufferLengthMS',bufferduration); 
-        app.syn.setParameterValue('xDMR_audio','TrainRepeats',6); 
-        app.syn.setParameterValues('xDMR_audio','buffer1',nsignal); 
-        app.syn.setParameterValues('xDMR_audio','buffer2',nsignal);
+        app.syn.getParameterValue('xDMR_audio', 'setflag')
+        if ~app.syn.getParameterValue('xDMR_audio', 'setflag')
+            app.syn.setParameterValue('xDMR_audio', 'setflag', 1);
+            app.DialogueLabel.Text = 'Audio -> MATLAB -> RZ6 (~2 min)';
+            pause(.1)
+            fid = fopen('DMR500ic120s30dB.bin');
+            dmr = fread(fid, 'float32');
+            fclose(fid);
+            level = 70;
+            dmrs = dmr./rms(dmr) * 10.*(level/20);
+            SN = app.syn.getSamplingRates(); 
+            fs = SN.RZ6_1; 
+            snipsamps = round(30*fs);
+            buff1 = dmrs(1:snipsamps);
+            buff2 = dmrs(snipsamps+(1:snipsamps));
+            app.syn.setMode(1);
+            tic
+            app.syn.setParameterValues('xDMR_audio', 'buffer1', buff1);
+            app.syn.setParameterValues('xDMR_audio', 'buffer2', buff2);
+            toc
+        end
+    
+%         bufferduration = 30000; %in ms, use an even number of seconds.
+%         bufferlength = round(bufferduration*195.3125);
+%         fid = fopen('C:/TDT/Synapse/DMR500ic120s30dB.f32');
+%         fsignal = fread(fid, bufferlength, 'float');
         app.DialogueLabel.Text = 'Loading';
         pause(.1)
     end
