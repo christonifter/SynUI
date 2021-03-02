@@ -32,6 +32,7 @@ if ~isempty(app.data.stimsig)
     SynStimFreq = NaN;
     SynLDSCFreq = NaN;
     SynLDSMD = NaN;
+    SynLDSME = NaN;
     SynLDSBW = NaN;
     try
         load([app.TankEdit.Value '\params.mat']');

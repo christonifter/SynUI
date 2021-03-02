@@ -352,6 +352,12 @@ function out = psthlfpplots(app, data)
                  figure(1);
                  subplot(1,2,i)
                  npow = pow./max(pow);
+%                  if i == 1
+%                      plot(f, pow, 'k')
+%                  else
+%                      plot(f, pow, 'r')
+%                  end
+%                  ylim([0 1.2E-5])
                  plot(f, npow - data.chanlist', 'k')
                  if sum(sounddriven(:,i))>0
                      hold on;
@@ -559,10 +565,12 @@ function out = psthlfpplots(app, data)
 %         out.lfpstatstable = table([]);
     else
 %LDS
-    lastfourCI95(:,1) = poissinv(95/100, app.data.lastfourrate.*psthwindow)./psthwindow;
+    lastfourrate = app.data.lastfourrate(data.chanlist, 1);
+    lastfourCI95(:,1) = poissinv(95/100, lastfourrate.*psthwindow)./psthwindow;
+    
         out.statstable = table(data.chanlist, averate(1,:)', averate(2,:)', ...
             CI95(1,:)', LDSaverate, LDSspikecount, LDSduration, app.data.firststimbinrate, ...
-            app.data.lastfourrate, lastfourCI95, PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
+            lastfourrate, lastfourCI95, PSTH1pmax', PSTH1plat', PSTH2pmax', PSTH2plat', ...
             'VariableNames', {'Channel', 'AveRate_PSTH1_Hz', 'AveRate_PSTH2_Hz', ...
             'p95_Confidence_Level', 'LDSaverate', 'LDSspikecount', 'LDSduration', 'LDSonsetrate_Hz', ...
             'Rate4secBeforeLDS_Hz', 'Last4secCI95_Hz', 'MaxRate_PSTH1_Hz', 'MaxRateLatency_PSTH1_sec', ...
